@@ -1,0 +1,265 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
+
+<h:body>
+ 
+<ui:composition template="template.xhtml">
+<ui:define name="content">
+
+	<h:form id="form">
+		<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+
+		<p:panel id="panelPesquisa" header="Filtros de pesquisa" style="margin:20px;">
+			<h:panelGrid columns="2" >
+				<h:outputText value="Data de registro: " /> 
+				<h:panelGroup>
+					<p:calendar id="dataInicial" value="#{rdoRouboCargaReceptacaoMB.filtro.dataInicial}" showOn="button"
+						    popupIconOnly="false" pattern="dd/MM/yyyy" locale="pt"
+							navigator="true" 
+						    label="Data de registro inicial">
+					    <p:ajax event="dateSelect" update="dataFinal" />
+					</p:calendar>
+					<p:commandButton id="btnAjudaInicial" icon="ui-icon-help" title="De / maior que" style="margin-left: 5px;" disabled="true"/>
+					<p:calendar id="dataFinal" value="#{rdoRouboCargaReceptacaoMB.filtro.dataFinal}" showOn="button"
+					    mindate="#{rdoRouboCargaReceptacaoMB.filtro.dataInicial}" 
+					    popupIconOnly="false" pattern="dd/MM/yyyy"
+					    navigator="true"
+					    locale="pt"  label="Data de registro final" style="margin-left: 15px;">
+					    <f:attribute name="dataInicial" value="#{myBean.startDate}" />
+					    <f:validator validatorId="primeDataInicialRangeValidator" disabled="true"/>
+					</p:calendar>
+					<p:commandButton id="btnAjudaFinal" icon="ui-icon-help" title="Até / menor que" style="margin-left: 5px;" disabled="true"/>
+				</h:panelGroup>
+ 
+ 				<h:outputText value="Flagrante:" />
+				<p:selectOneMenu id="flagrante" value="#{rdoRouboCargaReceptacaoMB.filtro.flagFlagrante}" style="width:150px">
+					<f:selectItem itemLabel="Todos" itemValue="" />
+					<f:selectItem itemLabel="Sim" itemValue="S" />
+					<f:selectItem itemLabel="Não" itemValue="N" />
+				</p:selectOneMenu>
+
+ 				<h:outputText value="Natureza:" />
+				<p:selectOneMenu id="natureza" value="#{rdoRouboCargaReceptacaoMB.filtro.natureza}" style="width:150px">
+					<f:selectItem itemLabel="Todos" itemValue="" />
+					<f:selectItem itemLabel="Carga" itemValue="C" />
+					<f:selectItem itemLabel="Receptação" itemValue="R" />
+				</p:selectOneMenu>				
+				
+				<h:outputText value="Complementares:" />
+				<p:selectOneMenu id="complemento" value="#{rdoRouboCargaReceptacaoMB.filtro.complemento}" style="width:400px">
+					<f:selectItem itemLabel="Todos" itemValue="" />
+					<f:selectItem itemLabel="Sem complementar (localização/devolução)" itemValue="A" />
+					<f:selectItem itemLabel="Com complementar (localização/devolução)" itemValue="B" />
+					<f:selectItem itemLabel="Apenas complementar (localização/devolução)" itemValue="C" />
+				</p:selectOneMenu>
+    		</h:panelGrid>
+
+			<f:facet name="footer">
+				<p:commandButton id="btnPesquisar" value="Pesquisar"
+						actionListener="#{rdoRouboCargaReceptacaoMB.pesquisar}" update="listaDeOcorrenciasLazy panelMapa panelGrafico" />
+				<p:commandButton id="btnLimpar" value="Limpar"
+						actionListener="#{rdoRouboCargaReceptacaoMB.limpar}" update="listaDeOcorrenciasLazy panelMapa panelPesquisa panelGrafico" />
+						
+	        </f:facet>
+		</p:panel>
+
+		<p:dataTable id="listaDeOcorrenciasLazy" var="ocorrencia"
+			value="#{rdoRouboCargaReceptacaoMB.ocorrenciasResultadoLazy}"
+			lazy="true"
+			selection="#{rdoRouboCargaReceptacaoMB.ocorrenciasSelecionadas}" 
+			rowSelectMode="checkbox"
+			rowKey="#{ocorrencia.id}"
+			style="margin:20px;" paginator="true"
+			paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+			rows="5" rowsPerPageTemplate="5,10,15,50,100">
+
+
+
+			<f:facet name="header">
+            	Ocorrências
+        	</f:facet>
+ 			<p:column selectionMode="multiple" style="width:5%;text-align:center" />
+			<p:column style="width:5%">
+            	<p:rowToggler /> 
+			</p:column>
+
+
+			<p:column headerText="Ocorrência">
+				<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarOcorrencia(ocorrencia)}" />
+			</p:column>
+			<p:column headerText="Data de registro" >
+				<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarData(ocorrencia.datahoraRegistroBo)}" />
+			</p:column>
+			<p:column headerText="Local do fato">
+				<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarEndereco(ocorrencia)}" />
+			</p:column>
+			<p:column headerText="Complementar" style="width:15%" >
+				<h:outputText value="Sim" rendered="#{not empty ocorrencia.anoReferenciaBo}" />
+				<h:outputText value="Não" rendered="#{empty ocorrencia.anoReferenciaBo}" />
+			</p:column>
+			<p:column headerText="Complementos" style="width:15%" >
+				<h:outputText value="#{fn:length(ocorrencia.complementares)}" />
+			</p:column>
+			<p:column headerText="Ocorrência complementar" rendered="false">
+				<ul style="list-style-type: none;">
+					<ui:repeat value="#{ocorrencia.complementares}" var="complementar" >
+						<li><h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarComplementar(complementar)}" /></li>
+					</ui:repeat>
+				</ul>
+			</p:column>
+			
+			<p:rowExpansion>
+				<p:panel header="#{rdoRouboCargaReceptacaoMB.formatarOcorrencia(ocorrencia)}">
+					<p:panelGrid columns="2">
+					
+						<h:outputText value="Data do fato:" />
+						<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarData(ocorrencia.dataOcorrenciaBo)}" />
+						
+						<h:outputText value="Data de registro:" />
+						<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarData(ocorrencia.datahoraRegistroBo)}" />
+
+						<h:outputText value="Flagrante:" />
+						<h:outputText value="#{ocorrencia.flagFlagrante}" />
+						
+						<h:outputText value="Local do fato:" />
+						<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarEndereco(ocorrencia)}" />
+
+						<h:outputText value="Geocode/LatLng (original):"/>
+						<h:outputText value="#{ocorrencia.latitude}, #{ocorrencia.longitude}"/>
+						
+						<h:outputText value="Geocode/LatLng (google):" />
+						<h:outputText value="#{ocorrencia.googleLatitude}, #{ocorrencia.googleLongitude}" />
+
+						<h:outputText value="Complementado (referência)" rendered="#{not empty ocorrencia.anoReferenciaBo}"/>
+						<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarReferencia(ocorrencia)}" rendered="#{not empty ocorrencia.anoReferenciaBo}"/>
+
+						<h:outputText value="Complementares:" />
+						<h:outputText value="#{fn:length(ocorrencia.complementares)}" />
+
+						<h:outputText value="Natureza:" />
+						<h:panelGroup layout="block">
+							<ul>
+								<ui:repeat value="#{ocorrencia.naturezas}" var="natureza" >
+									<li><h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarNatureza(natureza)}" /></li>
+								</ui:repeat>
+							</ul>	
+						</h:panelGroup>				
+		
+					</p:panelGrid>
+					<p:panel header="Complementares: #{fn:length(ocorrencia.complementares)}" rendered="#{not empty ocorrencia.complementares}">
+						<ui:repeat value="#{ocorrencia.complementares}" var="complementar">
+							<p:panel header="#{rdoRouboCargaReceptacaoMB.formatarOcorrencia(complementar)}" toggleable="true">
+								<p:panelGrid columns="2">
+								
+									<h:outputText value="Data do fato:" />
+									<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarData(complementar.dataOcorrenciaBo)}" />
+									
+									<h:outputText value="Data de registro:" />
+									<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarData(complementar.datahoraRegistroBo)}" />
+			
+									<h:outputText value="Flagrante:" />
+									<h:outputText value="#{complementar.flagFlagrante}" />
+									
+									<h:outputText value="Local do fato:" />
+									<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarEndereco(complementar)}" />
+			
+									<h:outputText value="Geocode/LatLng (original):"/>
+									<h:outputText value="#{complementar.latitude}, #{complementar.longitude}"/>
+									
+									<h:outputText value="Geocode/LatLng (google):" />
+									<h:outputText value="#{complementar.googleLatitude}, #{complementar.googleLongitude}" />
+			
+									<h:outputText value="Complementado (referência)" rendered="#{not empty complementar.anoReferenciaBo}"/>
+									<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarReferencia(complementar)}" rendered="#{not empty complementar.anoReferenciaBo}"/>
+			
+									<h:outputText value="Complementares:" />
+									<h:outputText value="#{fn:length(complementar.complementares)}" />
+			
+									<h:outputText value="Natureza:" />
+									<h:panelGroup layout="block">
+										<ul>
+											<ui:repeat value="#{complementar.naturezas}" var="natureza" >
+												<li><h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarNatureza(natureza)}" /></li>
+											</ui:repeat>
+										</ul>	
+									</h:panelGroup>				
+								
+								</p:panelGrid>								
+							</p:panel>
+						</ui:repeat>
+					</p:panel>
+				
+				</p:panel>
+			</p:rowExpansion>
+
+
+
+			<f:facet name="footer">
+				<h:outputText value="Total reg. da Pesquisa: #{rdoRouboCargaReceptacaoMB.ocorrenciasResultadoLazy.rowCount}   " />
+				<p:commandButton process="listaDeOcorrenciasLazy"
+					update="@widgetVar(mapaWidget)"
+					actionListener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}"
+					icon="ui-icon-search" value="Expor no mapa" />
+			</f:facet>
+		</p:dataTable>
+	
+	
+		<p:panel id="panelMapa" header="Mapa" style="margin:20px">
+			<p:gmap id="mapa" widgetVar="mapaWidget"
+					center="#{rdoRouboCargaReceptacaoMB.centroMapa}" zoom="9" type="ROADMAP"
+					model="#{rdoRouboCargaReceptacaoMB.geoModel}"  
+					style="width:100%;height:400px" />
+					
+			<f:facet name="footer">	
+				<h:panelGrid columns="8">
+				
+					<h:outputText value="Roubo de carga: " style="color: red;"/>
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirRoubo}">
+						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+					</p:inputSwitch>
+					
+					<h:outputText value="Receptação: " style="color: blue;"/>
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirReceptacao}">
+						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+					</p:inputSwitch>		
+				
+					<h:outputText value="Complementar: " style="color: green;" />
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirComplementar}">
+						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+					</p:inputSwitch>	
+
+					<h:outputText value="Apenas linhas: " style="color: grey;" />
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirApenasLinhas}">
+						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+					</p:inputSwitch>	
+
+				
+					<p:commandButton id="btnLimparMapa" value="Limpar mapa"
+						actionListener="#{rdoRouboCargaReceptacaoMB.limparMapa}" update="panelMapa" /> 
+				</h:panelGrid>
+			</f:facet>			
+		</p:panel>
+
+		<p:panel id="panelGrafico" header="Gráficos" toggleable="true" 
+			toggleSpeed="500" closeSpeed="500" widgetVar="widgetGrafico"
+			style="margin:20px;" >
+
+			<p:panelGrid columns="2" layout="grid">
+				<p:chart type="pie" model="#{rdoRouboCargaReceptacaoMB.graficoPizzaFlagrante}" style="height:300px"  responsive="true"/>
+				<p:chart type="pie" model="#{rdoRouboCargaReceptacaoMB.graficoPizzaAno}" style="height:300px"  responsive="true"/>
+				<p:chart type="pie" model="#{rdoRouboCargaReceptacaoMB.graficoPizzaComplementar}" style="height:300px"  responsive="true"/>
+
+			</p:panelGrid>
+
+		</p:panel>
+
+	</h:form>
+	
+</ui:define>
+</ui:composition>
+</h:body>
+</html>
