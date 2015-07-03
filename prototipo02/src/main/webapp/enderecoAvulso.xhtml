@@ -10,7 +10,7 @@
 <ui:composition template="template.xhtml">
 <ui:define name="content">
 
-	<h:form id="form" rendered="#{not enderecoAvulsoMB.detalhe}">
+	<h:form id="formLista" rendered="#{enderecoAvulsoMB.formulario == 'formLista'}">
 		<p:messages id="messages" showDetail="false" autoUpdate="true" closable="true" style="margin:20px;" />
 
 		<p:dataTable id="listaEnderecosAvulsosLazy" var="enderecoAvulso"
@@ -26,9 +26,48 @@
 			<f:facet name="header">
             	Endereços avulsos
         	</f:facet>
- 			<p:column selectionMode="multiple" style="width:5%;text-align:center" />
+ 			<p:column selectionMode="multiple" style="width:4%;text-align:center" />
+ 			<p:column style="width:4%">
+            	<p:rowToggler /> 
+			</p:column>
+			<p:rowExpansion>
+				<p:panel header="Detalhe">
+					<p:panelGrid columns="2">
+						<h:outputText value="Razão social:" />
+						<h:outputText value="#{enderecoAvulso.razaoSocial}" />
+			
+						<h:outputText value="Logradouro:" />
+						<h:outputText value="#{enderecoAvulso.logradouro}" />
+			
+						<h:outputText value="Número:" />
+						<h:outputText value="#{enderecoAvulso.numero}" />
+			
+						<h:outputText value="Bairro:" />
+						<h:outputText value="#{enderecoAvulso.bairro}" />
+			
+						<h:outputText value="Cidade:" />
+						<h:outputText value="#{enderecoAvulso.cidade}" />
+			
+						<h:outputText value="UF:"  />
+						<h:outputText value="#{enderecoAvulso.uf}" />
+							
+						<h:outputText value="CEP:" />
+						<h:outputText value="#{enderecoAvulso.cep}" />
+						
+						<h:outputText value="Tipo:"  />
+						<h:outputText value="#{enderecoAvulso.tipo}" />
+		
+						<h:outputText value="Ativo:"  />
+						<h:outputText value="#{enderecoAvulso.indicadorAtivo}" />
+		
+						<h:outputText value="Última atualização:"  />
+						<h:outputText value="#{enderecoAvulso.ultimaAtualizacao}" >
+							<f:converter converterId="dataConverter" />
+						</h:outputText>
+					</p:panelGrid>
+				</p:panel>
+			</p:rowExpansion>
 
-<!-- usar o panelGrid em cada coluna para simular o colspan/rowspan -->
 			<p:column headerText="Razão social">
 				<h:outputText value="#{enderecoAvulso.razaoSocial}" />
 			</p:column>
@@ -44,28 +83,22 @@
 			<p:column headerText="Cidade" >
 				<h:outputText value="#{enderecoAvulso.cidade}" />
 			</p:column>
-			<p:column headerText="UF" >
-				<h:outputText value="#{enderecoAvulso.uf}" />
-			</p:column>
-			<p:column headerText="CEP"  >
-				<h:outputText value="#{enderecoAvulso.cep}" />
-			</p:column>
 			<p:column headerText="Tipo" >
 				<h:outputText value="#{enderecoAvulso.tipo}" />
 			</p:column>
 			<p:column headerText="Ativo" >
 				<h:outputText value="#{enderecoAvulso.indicadorAtivo}" />
 			</p:column>
-			<p:column>
-				<p:menuButton value="Opções">
+			<p:column style="width:12%;text-align:center">
+				<p:menuButton value="Opções" >
 					<p:menuitem value="Alterar" icon="ui-icon-arrowrefresh-1-w"
 						update="@all">
 						<f:setPropertyActionListener value="#{enderecoAvulso}"
 							target="#{enderecoAvulsoMB.enderecoAvulso}" />
-						<f:setPropertyActionListener value="true"
-							target="#{enderecoAvulsoMB.detalhe}" />
+						<f:setPropertyActionListener value="formEnderecoAvulsoDetalhe"
+							target="#{enderecoAvulsoMB.formulario}" />
 					</p:menuitem>
-					<p:menuitem value="Excluir" icon="ui-icon-close" >
+					<p:menuitem value="Excluir" icon="ui-icon-close" rendered="false">
 						
 					</p:menuitem>
 				</p:menuButton>
@@ -75,14 +108,73 @@
 			</f:facet>
 		</p:dataTable>
 		<h:panelGroup layout="block" style="margin:20px; text-align:right;">
-			<p:commandButton icon="ui-icon-pencil" value="Incluir endereço" update="@all">
-				<f:setPropertyActionListener value="true" target="#{enderecoAvulsoMB.detalhe}" />
+			<p:menuButton value="Opções">
+				<p:menuitem value="Ativar" icon="ui-icon-arrowthick-1-ne" 
+					update="msgConfirmarAtivacao" onclick="PF('dialogConfirmarAtivacao').show();"  />
+				<p:menuitem value="Desativar" icon="ui-icon-arrowthick-1-sw" 
+					update="msgConfirmarDesativacao" onclick="PF('dialogConfirmarDesativacao').show();"  />
+				<p:separator />
+				<p:menuitem value="Excluir" icon="ui-icon-trash" 
+					update="msgConfirmarExclusao" onclick="PF('dialogConfirmarExclusao').show();"  />
+			</p:menuButton>
+		    <p:dialog id="confirmarAtivacao" header="Confirmação" widgetVar="dialogConfirmarAtivacao" modal="true" >
+    			<h:outputText id="msgConfirmarAtivacao" 
+    				value="Confirma a ativação dos #{fn:length(enderecoAvulsoMB.enderecosAvulsosSelecionados)} registros selecionados?" />
+    			<f:facet name="footer">
+    				<h:panelGroup layout="block" style="text-align:right;">
+						<p:commandButton value="Não" type="button"
+							onclick="PF('dialogConfirmarAtivacao').hide();"
+							styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+						<p:commandButton value="Sim" actionListener="#{enderecoAvulsoMB.ativarRegistrosSelecionados}"
+							onclick="PF('dialogConfirmarAtivacao').hide();"
+							styleClass="ui-confirmdialog-yes" icon="ui-icon-check" 
+							update="listaEnderecosAvulsosLazy"/>
+					</h:panelGroup>
+				</f:facet>
+			</p:dialog>
+		    <p:dialog id="confirmarDesativacao" header="Confirmação" widgetVar="dialogConfirmarDesativacao" modal="true" >
+    			<h:outputText id="msgConfirmarDesativacao" 
+    				value="Confirma a desativação dos #{fn:length(enderecoAvulsoMB.enderecosAvulsosSelecionados)} registros selecionados?" />
+    			<f:facet name="footer">
+    				<h:panelGroup layout="block" style="text-align:right;">
+						<p:commandButton value="Não" type="button"
+							onclick="PF('dialogConfirmarDesativacao').hide();"
+							styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+						<p:commandButton value="Sim" actionListener="#{enderecoAvulsoMB.desativarRegistrosSelecionados}"
+							onclick="PF('dialogConfirmarDesativacao').hide();"
+							styleClass="ui-confirmdialog-yes" icon="ui-icon-check"
+							update="listaEnderecosAvulsosLazy" />
+					</h:panelGroup>
+				</f:facet>
+			</p:dialog>
+		    <p:dialog id="confirmarExclusao" header="Confirmação" widgetVar="dialogConfirmarExclusao" modal="true" >
+    			<h:outputText id="msgConfirmarExclusao" 
+    				value="Confirma a exclusão dos #{fn:length(enderecoAvulsoMB.enderecosAvulsosSelecionados)} registros selecionados?" />
+    			<f:facet name="footer">
+    				<h:panelGroup layout="block" style="text-align:right;">
+						<p:commandButton value="Não" type="button"
+							onclick="PF('dialogConfirmarExclusao').hide();"
+							styleClass="ui-confirmdialog-no" icon="ui-icon-close" />
+						<p:commandButton value="Sim" actionListener="#{enderecoAvulsoMB.excluirRegistrosSelecionados}"
+							onclick="PF('dialogConfirmarExclusao').hide();"
+							styleClass="ui-confirmdialog-yes" icon="ui-icon-check" 
+							update="listaEnderecosAvulsosLazy"/>
+					</h:panelGroup>
+				</f:facet>
+			</p:dialog>
+			<p:commandButton icon="ui-icon-disk" value="Carregar lote" style="margin-left: 5px;" update="@all">
+				<f:setPropertyActionListener value="formCarga" target="#{enderecoAvulsoMB.formulario}" />
+				<f:param name="i" value="1" />
+			</p:commandButton>
+			<p:commandButton icon="ui-icon-pencil" value="Incluir endereço" style="margin-left: 5px;" update="@all">
+				<f:setPropertyActionListener value="formEnderecoAvulsoDetalhe" target="#{enderecoAvulsoMB.formulario}" />
+				<f:param name="i" value="1" />
 			</p:commandButton>
 		</h:panelGroup>
 	</h:form>
 	
 	
-	<h:form id="formEnderecoAvulsoDetalhe" rendered="#{enderecoAvulsoMB.detalhe}">
+	<h:form id="formEnderecoAvulsoDetalhe" rendered="#{enderecoAvulsoMB.formulario == 'formEnderecoAvulsoDetalhe'}">
 		<p:messages id="messages" showDetail="false" autoUpdate="true" closable="true" style="margin:20px;"/>
 	
 		<p:panel header="#{empty enderecoAvulsoMB.enderecoAvulso.id ? 'Inclusão' : 'Alteração'} de endereço avulso"  style="margin:20px;">
@@ -172,10 +264,10 @@
 					value="#{enderecoAvulsoMB.enderecoAvulso.tipo}"
 					style="width:125px" required="true"
 					requiredMessage="O tipo é obrigatório">
-					<f:selectItem itemLabel="Mercado" itemValue="MERCADO" />
-					<f:selectItem itemLabel="Galpão" itemValue="GALPAO" />
-					<f:selectItem itemLabel="Deposito" itemValue="DEPOSITO" />
-					<f:selectItem itemLabel="Desmanche" itemValue="DESMANCHE" />
+					<f:selectItem itemLabel="Mercado" itemValue="Mercado" />
+					<f:selectItem itemLabel="Galpão" itemValue="Galpão" />
+					<f:selectItem itemLabel="Depósito" itemValue="Depósito" />
+					<f:selectItem itemLabel="Desmanche" itemValue="Desmanche" />
 				</p:selectOneMenu>
 				<p:message for="tipo" />				
 
@@ -184,8 +276,8 @@
 					value="#{enderecoAvulsoMB.enderecoAvulso.indicadorAtivo}"
 					style="width:125px" required="true"
 					requiredMessage="O indicador de atividade é obrigatório">
-					<f:selectItem itemLabel="Sim" itemValue="S" />
-					<f:selectItem itemLabel="Não" itemValue="N" />
+					<f:selectItem itemLabel="Sim" itemValue="Sim" />
+					<f:selectItem itemLabel="Não" itemValue="Não" />
 				</p:selectOneMenu>
 				<p:message for="ativo" />				
 
@@ -196,8 +288,8 @@
 					<p:commandButton action="enderecoAvulso" icon="ui-icon-cancel"
 						value="Cancelar" update="@all" immediate="true">
 						<f:param name="i" value="1" />
-						<f:setPropertyActionListener value="false"
-							target="#{enderecoAvulsoMB.detalhe}" />
+						<f:setPropertyActionListener value="formLista"
+							target="#{enderecoAvulsoMB.formulario}" />
 					</p:commandButton>
 					<p:commandButton icon="ui-icon-check"
 						actionListener="#{enderecoAvulsoMB.incluir}" value="Incluir"
@@ -216,6 +308,98 @@
 			</f:facet>
 			
 		</p:panel>
+	</h:form>
+	
+	<h:form id="formCarga" rendered="#{enderecoAvulsoMB.formulario == 'formCarga'}">
+		<p:messages id="messages" showDetail="false" autoUpdate="true" closable="true" style="margin:20px;"/>
+
+		<p:panel header="Carga em lote de registros via planilha Excel (xls/xlsx)" style="margin:20px;">
+	    	
+	    	<h:panelGrid columns="3">
+	    	
+	    		<p:outputLabel for="desconsiderarPrimeiraLinha" value="Desconsiderar primeira linha:"  />
+				<p:selectOneMenu id="desconsiderarPrimeiraLinha" 
+					style="width:125px"
+					value="#{enderecoAvulsoMB.desconsiderarPrimeiraLinha}">
+					<p:ajax update="@this"/>
+					<f:selectItem itemLabel="Sim" itemValue="Sim" />
+					<f:selectItem itemLabel="Não" itemValue="Não" />
+				</p:selectOneMenu>
+	    		<p:message for="desconsiderarPrimeiraLinha" />	
+	    	
+		    	<p:outputLabel for="tipo" value="Tipo:"  />
+				<p:selectOneMenu id="tipo"
+					style="width:125px"
+					value="#{enderecoAvulsoMB.tipo}">
+					<p:ajax update="@this"/>
+					<f:selectItem itemLabel="Mercado" itemValue="Mercado" />
+					<f:selectItem itemLabel="Galpão" itemValue="Galpão" />
+					<f:selectItem itemLabel="Depósito" itemValue="Depósito" />
+					<f:selectItem itemLabel="Desmanche" itemValue="Desmanche" />
+				</p:selectOneMenu>
+				<p:message for="tipo" />	
+				
+				<p:outputLabel for="ativo" value="Ativo:"  />
+				<p:selectOneMenu id="ativo"
+					style="width:125px"
+					value="#{enderecoAvulsoMB.indicadorAtivo}">
+					<p:ajax update="@this"/>
+					<f:selectItem itemLabel="Sim" itemValue="Sim" />
+					<f:selectItem itemLabel="Não" itemValue="Não" />
+				</p:selectOneMenu>
+				<p:message for="ativo" />			
+				
+				<p:outputLabel for="arquivo" value="Arquivo:" rendered="#{not empty enderecoAvulsoMB.arquivo}"/>
+				<h:outputText id="arquivo" value="#{enderecoAvulsoMB.arquivo.fileName} com #{fn:length(enderecoAvulsoMB.arquivoEnderecosAvulsos)} registros." rendered="#{not empty enderecoAvulsoMB.arquivo}"/>
+				<p:message for="arquivo" rendered="#{not empty enderecoAvulsoMB.arquivo}" />		
+				
+			</h:panelGrid>
+			
+			<p:panel header="Informar o arquivo para carga" style="margin-top: 20px;">
+				<div style="font-size: 0.8em">
+					<p>
+						O arquivo deve conter as seguintes colunas:
+					</p>
+					<ol style="list-style-type: upper-alpha;">
+						<li>Razão social <i>(obrigatório, descrição do lugar)</i>;</li>
+						<li>Logradouro <i>(obrigatório)</i>;</li>
+						<li>Número <i>(obrigatório, entre 0 e 15000)</i>;</li>
+						<li>Bairro <i>(obrigatório)</i>;</li>
+						<li>CEP <i>(opcional, exatamente 8 números com ou sem hífen)</i>;</li>
+						<li>Cidade <i>(obrigatório)</i>;</li>
+						<li>Unidade Federativa <i>(obrigatório, sigla válida em letra maúscula)</i>.</li>
+					</ol>
+				</div>
+		    	<p:fileUpload label="Escolher"  fileUploadListener="#{enderecoAvulsoMB.lerArquivo}" 
+		    		mode="advanced" auto="true"
+		    		dragDropSupport="false" update="@form" 
+	            	fileLimit="1" allowTypes="/(\.|\/)(xls?x)$/" skinSimple="true"
+	            	style="margin: 20px;"
+	            	rendered="#{empty enderecoAvulsoMB.arquivo}" />
+            </p:panel>
+ 
+	    	
+	    				
+			<f:facet name="footer">
+				<h:panelGroup layout="block" style="text-align:right;">
+					<p:commandButton action="enderecoAvulso" icon="ui-icon-cancel"
+						value="Cancelar" update="@all" immediate="true">
+						<f:param name="i" value="1" />
+						<f:setPropertyActionListener value="formLista"
+							target="#{enderecoAvulsoMB.formulario}" />
+					</p:commandButton>
+					<p:commandButton icon="ui-icon-check"
+						value="Processar"
+						actionListener="#{enderecoAvulsoMB.carregarArquivo}"
+						disabled="#{empty enderecoAvulsoMB.arquivo}"
+						update="@all">
+						<f:param name="i" value="1" />
+					</p:commandButton>
+				</h:panelGroup>
+			</f:facet>
+
+		</p:panel>
+	
 	</h:form>
 		
 </ui:define>

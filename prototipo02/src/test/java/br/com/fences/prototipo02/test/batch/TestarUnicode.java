@@ -41,7 +41,7 @@ public class TestarUnicode {
 		
 	}
 	
-	@Test
+	//@Test
 	public void normalizar()
 	{	
 		PrintWriter pw = null;

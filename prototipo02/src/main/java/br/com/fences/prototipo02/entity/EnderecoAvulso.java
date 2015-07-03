@@ -25,7 +25,19 @@ public class EnderecoAvulso implements Serializable{
 	private String googleGeocoderStatus; 
 	private String indicadorAtivo;
 	private String ultimaAtualizacao;
-
+	
+	
+	@Override
+	public String toString() {
+		return "EnderecoAvulso [id=" + id + ", razaoSocial=" + razaoSocial
+				+ ", logradouro=" + logradouro + ", numero=" + numero
+				+ ", bairro=" + bairro + ", cep=" + cep + ", cidade=" + cidade
+				+ ", uf=" + uf + ", tipo=" + tipo + ", googleLatitude="
+				+ googleLatitude + ", googleLongitude=" + googleLongitude
+				+ ", googleGeocoderStatus=" + googleGeocoderStatus
+				+ ", indicadorAtivo=" + indicadorAtivo + ", ultimaAtualizacao="
+				+ ultimaAtualizacao + "]";
+	}
 	public String getId() {
 		return id;
 	}

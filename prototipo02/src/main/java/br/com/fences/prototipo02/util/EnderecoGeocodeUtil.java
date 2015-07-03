@@ -44,19 +44,28 @@ public class EnderecoGeocodeUtil {
 		LatLng latLng = null;
 		if (Verificador.isValorado(ocorrencia.getLatitude()) && Verificador.isValorado(ocorrencia.getLongitude()))
 		{	//-- utilizar o geocode original
-			float latitude = Float.parseFloat(ocorrencia.getLatitude());
-			float longitude = Float.parseFloat(ocorrencia.getLongitude());
-			latLng = new LatLng(latitude, longitude);
+			latLng = verificarExistenciaPreviaDeGeocode(ocorrencia.getLatitude(), ocorrencia.getLongitude());
 		}
 		else if (Verificador.isValorado(ocorrencia.getGoogleLatitude()) && Verificador.isValorado(ocorrencia.getGoogleLongitude()))
 		{	//-- utilizar o geocode pre-processado do google
-			float latitude = Float.parseFloat(ocorrencia.getGoogleLatitude());
-			float longitude = Float.parseFloat(ocorrencia.getGoogleLongitude());
-			latLng = new LatLng(latitude, longitude);
+			latLng = verificarExistenciaPreviaDeGeocode(ocorrencia.getGoogleLatitude(), ocorrencia.getGoogleLongitude());
 		}
 		else
 		{ 
 			//-- nao tem geocode, retorna nulo
+		}
+		return latLng;	
+	}
+	
+	
+	public static LatLng verificarExistenciaPreviaDeGeocode(String latitude, String longitude)
+	{
+		LatLng latLng = null;
+		if (Verificador.isValorado(latitude) && Verificador.isValorado(longitude))
+		{
+			float latitudeF = Float.parseFloat(latitude);
+			float longitudeF = Float.parseFloat(longitude);
+			latLng = new LatLng(latitudeF, longitudeF);
 		}
 		return latLng;	
 	}
@@ -72,7 +81,7 @@ public class EnderecoGeocodeUtil {
 		return latLng;
 	}
 	
-	private static LatLng converterEnderecoEmLatLng(String endereco)
+	public static LatLng converterEnderecoEmLatLng(String endereco)
 	{
 		LatLng latLng = null;
 		endereco = retirarAcentos(endereco);
@@ -148,7 +157,7 @@ public class EnderecoGeocodeUtil {
 		return endereco;
 	}
 	
-	private static String concatenarEndereco(String... campos) 
+	public static String concatenarEndereco(String... campos) 
 	{
 		String resultado = "";
 		for (String campo : campos) 

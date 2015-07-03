@@ -38,9 +38,17 @@ public class MongoProvider {
 		
 		String uriConexao = String.format("mongodb://%s:%s@%s:%s/%s", USUARIO, SENHA, HOST, PORTA, BANCO);
 		MongoClientURI uri  = new MongoClientURI(uriConexao); 
-	    conexao = new MongoClient(uri);
-		banco = conexao.getDatabase(uri.getDatabase());
-//		colecao = banco.getCollection(COLECAO);
+
+		//-- nuvem
+//		conexao = new MongoClient(uri);
+//		banco = conexao.getDatabase(uri.getDatabase());
+		
+		//-- cliente
+		conexao = new MongoClient("10.75.200.49", 27017);
+		banco = conexao.getDatabase("fences");
+
+		
+		//		colecao = banco.getCollection(COLECAO);
 		colecaoRdoRouboCarga = banco.getCollection(COLECAO_ROUBO_CARGA);
 		if (colecaoRdoRouboCarga == null)
 		{

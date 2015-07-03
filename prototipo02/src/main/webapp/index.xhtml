@@ -213,10 +213,9 @@
 					center="#{rdoRouboCargaReceptacaoMB.centroMapa}" zoom="9" type="ROADMAP"
 					model="#{rdoRouboCargaReceptacaoMB.geoModel}"  
 					style="width:100%;height:400px" />
-					
-			<f:facet name="footer">	
+			
+			<p:panel id="panelControle" header="Controles" style="margin:20px">
 				<h:panelGrid columns="8">
-				
 					<h:outputText value="Roubo de carga: " style="color: red;"/>
 					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirRoubo}">
 						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
@@ -236,12 +235,37 @@
 					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirApenasLinhas}">
 						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 					</p:inputSwitch>	
-
-				
-					<p:commandButton id="btnLimparMapa" value="Limpar mapa"
-						actionListener="#{rdoRouboCargaReceptacaoMB.limparMapa}" update="panelMapa" /> 
 				</h:panelGrid>
-			</f:facet>			
+
+				<p:fieldset legend="Endereço avulso" style="margin:20px">
+					<h:panelGrid columns="8">
+						<h:outputText value="Mercado: " />
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoMercado}">
+							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+						</p:inputSwitch>
+						
+						<h:outputText value="Galpão: " />
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoGalpao}">
+							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+						</p:inputSwitch>		
+					
+						<h:outputText value="Depósito: "  />
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoDeposito}">
+							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+						</p:inputSwitch>	
+	
+						<h:outputText value="Desmanche: "  />
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoDesmanche}">
+							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
+						</p:inputSwitch>	
+					</h:panelGrid>
+				</p:fieldset>
+
+				<p:commandButton id="btnLimparMapa" value="Limpar mapa"
+					actionListener="#{rdoRouboCargaReceptacaoMB.limparMapa}" update="panelMapa" /> 
+			</p:panel>
+					
+				
 		</p:panel>
 
 		<p:panel id="panelGrafico" header="Gráficos" toggleable="true" 

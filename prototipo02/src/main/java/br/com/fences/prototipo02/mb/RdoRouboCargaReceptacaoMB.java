@@ -3,7 +3,6 @@ package br.com.fences.prototipo02.mb;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -15,6 +14,7 @@ import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.omnifaces.util.Faces;
 import org.omnifaces.util.Messages;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.chart.PieChartModel;
@@ -24,7 +24,9 @@ import org.primefaces.model.map.MapModel;
 import org.primefaces.model.map.Marker;
 import org.primefaces.model.map.Polyline;
 
+import br.com.fences.prototipo02.dao.EnderecoAvulsoDAO;
 import br.com.fences.prototipo02.dao.RdoRouboCargaReceptacaoDAO;
+import br.com.fences.prototipo02.entity.EnderecoAvulso;
 import br.com.fences.prototipo02.entity.Filtro;
 import br.com.fences.prototipo02.entity.FiltroMapa;
 import br.com.fences.prototipo02.entity.Natureza;
@@ -44,6 +46,9 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 
 	@Inject
 	private RdoRouboCargaReceptacaoDAO rdoRouboCargaReceptacaoDAO;
+	
+	@Inject
+	private EnderecoAvulsoDAO enderecoAvulsoDAO;
 	
 	@Inject
 	private Filtro filtro;
@@ -159,31 +164,101 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 		geoModel = new DefaultMapModel();  	
 		
 		//-- caso nao exista geocode, pesquisa no google e grava no banco.
-		for (Ocorrencia ocorrencia : ocorrenciasSelecionadas) 
+		if (ocorrenciasSelecionadas != null)
 		{
+			for (Ocorrencia ocorrencia : ocorrenciasSelecionadas) 
+			{
+				
+				List<Ocorrencia> paiMaisFilhos = new ArrayList<>();
+				paiMaisFilhos.add(ocorrencia);
+				paiMaisFilhos.addAll(ocorrencia.getComplementares());
+				
+				for (Ocorrencia ocorAux : paiMaisFilhos)
+				{
+					//-- nao processar geocode previo com ZERO_RESULTS
+					if (Verificador.isValorado(ocorAux.getGoogleGeocoderStatus()))
+					{
+						if (ocorAux.getGoogleGeocoderStatus().equals("ZERO_RESULTS"))
+						{
+							continue;
+						}
+					}
+					
+					LatLng latLng = EnderecoGeocodeUtil.verificarExistenciaPreviaDeGeocode(ocorAux);
+					if (latLng == null)
+					{
+						try 
+						{
+							//-- consulta geoCode no google
+							latLng = EnderecoGeocodeUtil.gerarGeocode(ocorAux);
+						}
+						catch (GoogleLimiteAtingidoRuntimeException e)
+						{
+							Messages.create("Erro na pesquisa do Geocode no google").warn().detail(e.getMessage()).add();
+							return;
+						}
+						catch (GoogleZeroResultsRuntimeException e)
+						{
+							ocorAux.setGoogleGeocoderStatus("ZERO_RESULTS");
+							//-- atualiza no banco
+							rdoRouboCargaReceptacaoDAO.substituir(ocorAux);
+							System.out.println("atualizado como ZERO_RESULTS [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
+						}
+						if (latLng != null)
+						{
+							ocorAux.setGoogleLatitude(Double.toString(latLng.getLat()));
+							ocorAux.setGoogleLongitude(Double.toString(latLng.getLng()));
+							ocorAux.setGoogleGeocoderStatus("OK");
+							//-- atualiza no banco
+							rdoRouboCargaReceptacaoDAO.substituir(ocorAux);
+							System.out.println("atualizado como OK [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
+						}
+					}
+				}
+			}
+		} 
+		
+		//-- processar geocode dos Avulsos...
+		if (filtroMapa.isExibirAvulsoDeposito() || filtroMapa.isExibirAvulsoDesmanche() || 
+				filtroMapa.isExibirAvulsoGalpao() || filtroMapa.isExibirAvulsoMercado())
+		{
+			List<String> tipos = new ArrayList<>();
+			if (filtroMapa.isExibirAvulsoDeposito()) tipos.add("Depósito");
+			if (filtroMapa.isExibirAvulsoDesmanche()) tipos.add("Desmanche");
+			if (filtroMapa.isExibirAvulsoGalpao()) tipos.add("Galpão");
+			if (filtroMapa.isExibirAvulsoMercado()) tipos.add("Mercado");
 			
-			List<Ocorrencia> paiMaisFilhos = new ArrayList<>();
-			paiMaisFilhos.add(ocorrencia);
-			paiMaisFilhos.addAll(ocorrencia.getComplementares());
+			List<EnderecoAvulso> enderecosAvulsos = enderecoAvulsoDAO.pesquisarAtivoPorTipo(tipos);
 			
-			for (Ocorrencia ocorAux : paiMaisFilhos)
+			for (EnderecoAvulso enderecoAvulso : enderecosAvulsos)
 			{
 				//-- nao processar geocode previo com ZERO_RESULTS
-				if (Verificador.isValorado(ocorAux.getGoogleGeocoderStatus()))
+				if (Verificador.isValorado(enderecoAvulso.getGoogleGeocoderStatus()))
 				{
-					if (ocorAux.getGoogleGeocoderStatus().equals("ZERO_RESULTS"))
+					if (enderecoAvulso.getGoogleGeocoderStatus().equals("ZERO_RESULTS"))
 					{
 						continue;
 					}
 				}
 				
-				LatLng latLng = EnderecoGeocodeUtil.verificarExistenciaPreviaDeGeocode(ocorAux);
+				//-- verifica existencia previa de geoCode
+				LatLng latLng = EnderecoGeocodeUtil
+						.verificarExistenciaPreviaDeGeocode(
+								enderecoAvulso.getGoogleLatitude(),
+								enderecoAvulso.getGoogleLongitude());
 				if (latLng == null)
 				{
+					String enderecoFormatado = EnderecoGeocodeUtil
+							.concatenarEndereco(
+									enderecoAvulso.getLogradouro(),
+									enderecoAvulso.getNumero(),
+									enderecoAvulso.getBairro(),
+									enderecoAvulso.getCidade(),
+									enderecoAvulso.getUf());
 					try 
 					{
 						//-- consulta geoCode no google
-						latLng = EnderecoGeocodeUtil.gerarGeocode(ocorAux);
+						latLng = EnderecoGeocodeUtil.converterEnderecoEmLatLng(enderecoFormatado);
 					}
 					catch (GoogleLimiteAtingidoRuntimeException e)
 					{
@@ -192,74 +267,144 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 					}
 					catch (GoogleZeroResultsRuntimeException e)
 					{
-						ocorAux.setGoogleGeocoderStatus("ZERO_RESULTS");
+						enderecoAvulso.setGoogleGeocoderStatus("ZERO_RESULTS");
 						//-- atualiza no banco
-						rdoRouboCargaReceptacaoDAO.substituir(ocorAux);
-						System.out.println("atualizado como ZERO_RESULTS [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
+						enderecoAvulsoDAO.substituir(enderecoAvulso);
+						System.out.println("atualizado como ZERO_RESULTS [" + enderecoFormatado + "]");
 					}
 					if (latLng != null)
 					{
-						ocorAux.setGoogleLatitude(Double.toString(latLng.getLat()));
-						ocorAux.setGoogleLongitude(Double.toString(latLng.getLng()));
-						ocorAux.setGoogleGeocoderStatus("OK");
+						enderecoAvulso.setGoogleLatitude(Double.toString(latLng.getLat()));
+						enderecoAvulso.setGoogleLongitude(Double.toString(latLng.getLng()));
+						enderecoAvulso.setGoogleGeocoderStatus("OK");
 						//-- atualiza no banco
-						rdoRouboCargaReceptacaoDAO.substituir(ocorAux);
-						System.out.println("atualizado como OK [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
+						enderecoAvulsoDAO.substituir(enderecoAvulso);
+						System.out.println("atualizado como OK [" + enderecoFormatado + "]");
 					}
 				}
 			}
 		}
+		
+		
+		
  
 		//-- exibe no mapa apenas ocorrencias que contem geoCode pre-processado
-		for (Ocorrencia ocorrencia : ocorrenciasSelecionadas) 
+		if (ocorrenciasSelecionadas != null)
 		{
-			if (filtroMapa.isExibirApenasLinhas())
+			for (Ocorrencia ocorrencia : ocorrenciasSelecionadas) 
 			{
-				if (!verificarExibicaoDeLinha(ocorrencia))
+				if (filtroMapa.isExibirApenasLinhas())
 				{
-					continue;
+					if (!verificarExibicaoDeLinha(ocorrencia))
+					{
+						continue;
+					}
+				}
+				
+				exibirNoMapa(ocorrencia);
+				for (Ocorrencia complementar : ocorrencia.getComplementares())
+				{
+					
+					//--- add linha entre pai e filho
+					if (filtroMapa.isExibirComplementar())
+					{
+						boolean exibir = false;
+						for (Natureza natureza : complementar.getNaturezas())
+						{
+							if (natureza.getIdOcorrencia().equals("40") && natureza.getIdEspecie().equals("40"))
+							{
+								exibir = true;
+								break;
+							}
+						}
+						if (exibir)
+						{
+							exibirNoMapa(complementar);
+							
+							LatLng latLngPai = EnderecoGeocodeUtil.verificarExistenciaPreviaDeGeocode(ocorrencia);
+							LatLng latLngFilho = EnderecoGeocodeUtil.verificarExistenciaPreviaDeGeocode(complementar);
+							
+							if (latLngPai != null && latLngFilho != null)
+							{
+								Polyline polyline = new Polyline();
+								polyline.getPaths().add(latLngPai);
+								polyline.getPaths().add(latLngFilho);
+								
+								polyline.setStrokeWeight(5);
+								polyline.setStrokeColor("#FF0000");
+							    polyline.setStrokeOpacity(0.4);
+							    
+							    if (geoModel != null)
+							    {
+							    	geoModel.addOverlay(polyline);
+							    }
+							}
+						}
+					}
 				}
 			}
+		}
+		
+		
+		//-- exibe endereco avulso previamente processado geocode
+		if (filtroMapa.isExibirAvulsoDeposito() || filtroMapa.isExibirAvulsoDesmanche() || 
+				filtroMapa.isExibirAvulsoGalpao() || filtroMapa.isExibirAvulsoMercado())
+		{
+			List<String> tipos = new ArrayList<>();
+			if (filtroMapa.isExibirAvulsoDeposito()) tipos.add("Depósito");
+			if (filtroMapa.isExibirAvulsoDesmanche()) tipos.add("Desmanche");
+			if (filtroMapa.isExibirAvulsoGalpao()) tipos.add("Galpão");
+			if (filtroMapa.isExibirAvulsoMercado()) tipos.add("Mercado");
 			
-			exibirNoMapa(ocorrencia);
-			for (Ocorrencia complementar : ocorrencia.getComplementares())
+			List<EnderecoAvulso> enderecosAvulsos = enderecoAvulsoDAO.pesquisarAtivoPorTipo(tipos);
+			
+			for (EnderecoAvulso enderecoAvulso : enderecosAvulsos)
 			{
-				
-				//--- add linha entre pai e filho
-				if (filtroMapa.isExibirComplementar())
+				if (enderecoAvulso.getGoogleGeocoderStatus().equals("OK"))
 				{
-					boolean exibir = false;
-					for (Natureza natureza : complementar.getNaturezas())
+					String urlMarcador = "http://maps.google.com/mapfiles/ms/micons/yellow-dot.png";
+					
+					if (enderecoAvulso.getTipo().equalsIgnoreCase("Mercado"))
 					{
-						if (natureza.getIdOcorrencia().equals("40") && natureza.getIdEspecie().equals("40"))
-						{
-							exibir = true;
-							break;
-						}
+						urlMarcador = Faces.getRequestContextPath() + "/resources/img/iconeMapa/mercado.png";
 					}
-					if (exibir)
+					if (enderecoAvulso.getTipo().equalsIgnoreCase("Depósito"))
 					{
-						exibirNoMapa(complementar);
-						
-						LatLng latLngPai = EnderecoGeocodeUtil.verificarExistenciaPreviaDeGeocode(ocorrencia);
-						LatLng latLngFilho = EnderecoGeocodeUtil.verificarExistenciaPreviaDeGeocode(complementar);
-						
-						if (latLngPai != null && latLngFilho != null)
-						{
-							Polyline polyline = new Polyline();
-							polyline.getPaths().add(latLngPai);
-							polyline.getPaths().add(latLngFilho);
-							
-							polyline.setStrokeWeight(5);
-							polyline.setStrokeColor("#FF0000");
-						    polyline.setStrokeOpacity(0.4);
-						    
-						    if (geoModel != null)
-						    {
-						    	geoModel.addOverlay(polyline);
-						    }
-						}
+						urlMarcador = Faces.getRequestContextPath() + "/resources/img/iconeMapa/deposito.png";
 					}
+					if (enderecoAvulso.getTipo().equalsIgnoreCase("Galpão"))
+					{
+						urlMarcador = Faces.getRequestContextPath() + "/resources/img/iconeMapa/galpao.png";
+					}
+					if (enderecoAvulso.getTipo().equalsIgnoreCase("Desmanche"))
+					{
+						urlMarcador = Faces.getRequestContextPath() + "/resources/img/iconeMapa/desmanche.png";
+					}
+
+	
+					
+					String enderecoFormatado = EnderecoGeocodeUtil
+							.concatenarEndereco(
+									enderecoAvulso.getLogradouro(),
+									enderecoAvulso.getNumero(),
+									enderecoAvulso.getBairro(),
+									enderecoAvulso.getCidade(),
+									enderecoAvulso.getUf());
+					
+					String titulo = enderecoAvulso.getTipo() + " - " + enderecoFormatado;
+					
+					LatLng latLng = EnderecoGeocodeUtil
+							.verificarExistenciaPreviaDeGeocode(
+									enderecoAvulso.getGoogleLatitude(),
+									enderecoAvulso.getGoogleLongitude());
+					
+					
+					
+					
+					
+					Marker marcaNoMapa = new Marker(latLng, titulo, null, urlMarcador);
+					
+					geoModel.addOverlay(marcaNoMapa);
 				}
 			}
 		}

@@ -92,6 +92,33 @@ public class EnderecoAvulsoDAO {
 	    return enderecosAvulsos;
 	}
 	
+	public List<EnderecoAvulso> pesquisarAtivoPorTipo(List<String> tipos)
+	{
+		List<EnderecoAvulso> enderecosAvulsos = new ArrayList<>();
+		BasicDBObject pesquisa = new BasicDBObject();
+		
+		if (tipos != null && !tipos.isEmpty())
+		{
+			pesquisa.put("tipo", 
+					new BasicDBObject("$in", tipos ));
+			pesquisa.put("indicadorAtivo", "Sim");
+
+			MongoCursor<Document> cursor = colecao.find(pesquisa).iterator();
+			
+		    try {
+		        while (cursor.hasNext()) {
+		        	Document documento = cursor.next();
+		        	EnderecoAvulso enderecoAvulso = converter.paraObjeto(documento);
+		        	enderecosAvulsos.add(enderecoAvulso);
+		        }
+		    } finally {
+		        cursor.close();
+		    }
+		}
+		
+		return enderecosAvulsos;
+	}
+	
 	/**
 	 * Substitui (replace) o enderecoAvulso pelo id
 	 * @param ocorrencia
@@ -123,6 +150,44 @@ public class EnderecoAvulsoDAO {
 		}
 		catch (Exception e)
 		{
+			String msg = "Erro na inclusao unica. log[" + enderecoAvulso.getLogradouro() + "].";
+			System.err.println(msg);
+			e.printStackTrace();
+			throw new RuntimeException(msg);
+		}
+	}
+	
+	public void adicionar(List<EnderecoAvulso> enderecosAvulsos)
+	{
+		try
+		{
+			List<Document> documentos = new ArrayList<>();
+			for (EnderecoAvulso enderecoAvulso : enderecosAvulsos)
+			{
+				enderecoAvulso.setUltimaAtualizacao(dataHoraCorrente());
+				Document documento = converter.paraDocumento(enderecoAvulso);
+				documentos.add(documento);
+			}
+			colecao.insertMany(documentos);
+		}
+		catch (Exception e)
+		{
+			String msg = "Erro na inclusão em lote. log[" + e.getMessage() + "].";
+			System.err.println(msg);
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+	
+	public void remover(EnderecoAvulso enderecoAvulso)
+	{
+		try
+		{
+			Document documento = converter.paraDocumento(enderecoAvulso);
+			colecao.deleteOne(eq("_id", documento.get("_id")));
+		}
+		catch (Exception e)
+		{
 			String msg = "Erro na alteracao. log[" + enderecoAvulso.getLogradouro() + "].";
 			System.err.println(msg);
 			e.printStackTrace();
@@ -133,7 +198,7 @@ public class EnderecoAvulsoDAO {
 	private String dataHoraCorrente()
 	{
 		String ultimaAtualizacao = FormatarData.getAnoMesDiaHoraMinutoSegundoConcatenados().format(new Date());
-		return ultimaAtualizacao;
+		return ultimaAtualizacao; 
 	}
 	
 	

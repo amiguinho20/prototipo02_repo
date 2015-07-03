@@ -12,7 +12,7 @@ import br.com.fences.prototipo02.util.Verificador;
 
 
 /**
- * Permite apenas de 1 a 5 digitos, e o numero deve estar entre 1 e 15000 <br/>
+ * Permite apenas de 1 a 5 digitos, e o numero deve estar entre 1 e 50000 <br/>
  */
 @FacesValidator("numeroResidencialRegexValidator")
 public class NumeroResidenciaRegexValidator implements Validator {
@@ -28,9 +28,9 @@ public class NumeroResidenciaRegexValidator implements Validator {
         	if (valor.matches(REGEX))
         	{
         		int numero = Integer.parseInt(valor);
-        		if (numero < 1 || numero > 15000)
+        		if (numero < 0 || numero > 50000)
         		{
-        			String msg = "Apenas números entre 1 e 15000 são permitidos.";
+        			String msg = "Apenas números entre 0 e 50000 são permitidos.";
             		throw new ValidatorException(Messages.createError(msg));
         		}
         	}
