@@ -27,8 +27,6 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import br.com.fences.prototipo02.util.FormatarData;
-
 
 
 
@@ -89,19 +87,19 @@ public class RdoDAO implements Serializable {
             rdoDao.criarArquivo(nomeArquivo, registros);
             
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+        	System.err.println(e);
         } catch (SQLException e) {
-            e.printStackTrace();
+        	System.err.println(e);
         } catch (IOException e) {
-			e.printStackTrace();
+        	System.err.println(e);
         } catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 		}finally{
             if(connection!=null){
                 try {
                     connection.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                	System.err.println(e);
                 }
             }
         }
@@ -241,7 +239,7 @@ public class RdoDAO implements Serializable {
 			
 			System.out.println("[" + dfDataHora.format(Calendar.getInstance().getTime()) + "] Termino das consultas [" + registros.size() + "] registros.");
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			//-- fechar maps de prepare
@@ -290,7 +288,7 @@ public class RdoDAO implements Serializable {
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset, stmt);
@@ -509,7 +507,7 @@ public class RdoDAO implements Serializable {
 				json.append(criarJson(atributos));
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset);
@@ -629,7 +627,7 @@ public class RdoDAO implements Serializable {
 			}
 			json = criarJsonArray("NATUREZA", naturezas);
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset);
@@ -948,7 +946,7 @@ public class RdoDAO implements Serializable {
 				json = criarJsonArray("VEICULO", veiculos);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset);
@@ -1083,7 +1081,7 @@ public class RdoDAO implements Serializable {
 				json = criarJsonArray("PESSOA", veiculos);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset);
@@ -1205,7 +1203,7 @@ public class RdoDAO implements Serializable {
 				json = criarJsonArray("VITIMA", vitimas);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset);
@@ -1300,7 +1298,7 @@ public class RdoDAO implements Serializable {
 				json = criarJsonArray("AUTOR", vitimas);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset);
@@ -1399,7 +1397,7 @@ public class RdoDAO implements Serializable {
 				json = criarJsonArray("MODUS_OPERANDI", vitimas);
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.err.println(e);
 			throw new RuntimeException(e);
 		} finally {
 			DaoUtil.fecharRecurso(rset);
@@ -2815,7 +2813,7 @@ public class RdoDAO implements Serializable {
 			System.err.println("Do prepare [" + prepare + "]");
 
 			
-			e.printStackTrace();
+			System.err.println(e);
 			throw e;
 		}
 		return json;
@@ -2853,26 +2851,6 @@ public class RdoDAO implements Serializable {
 			atributo =  "\"" + chave + "\":\"" + valor + "\"";
 		}
 		return atributo;
-	}
-	
-	private String normalizar(String original)
-	{
-		StringBuilder normalizado = new StringBuilder();
-		for (char character : original.toCharArray())
-		{
-			
-		}
-		
-		return normalizado.toString();
-	}
-	
-	private String replaceAux(String valor, char de, char para)
-	{
-		while (valor.indexOf(de) > 0)
-		{
-			valor = valor.replace(de, para);
-		}
-		return valor;
 	}
 	
 	private void adicionarAtributoJson(List<String> lista, String valor)
@@ -3005,5 +2983,54 @@ public class RdoDAO implements Serializable {
 	        }
 	    }	
 		
+	}
+	
+	public static class FormatarData {
+		
+		private static DateFormat tipo01 = new SimpleDateFormat("yyyyMMddHHmmss");
+		private static DateFormat tipo02 = new SimpleDateFormat("yyyyMMdd");
+		private static DateFormat tipo03 = new SimpleDateFormat("dd/MM/yyyy");
+		private static DateFormat tipo04 = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+		private static DateFormat tipo05 = new SimpleDateFormat("HHmm");
+		
+		/**
+		 * yyyyMMddHHmmss
+		 */
+		public static DateFormat getAnoMesDiaHoraMinutoSegundoConcatenados()
+		{
+			return tipo01;
+		}
+		
+		/**
+		 * yyyyMMdd
+		 */
+		public static DateFormat getAnoMesDiaContatenado()
+		{
+			return tipo02;
+		}
+		
+		/**
+		 * dd/MM/yyyy
+		 */
+		public static DateFormat getDiaMesAnoComBarras()
+		{
+			return tipo03;
+		}
+		
+		/**
+		 * dd/MM/yyyy HH:mm:ss
+		 */
+		public static DateFormat getDiaMesAnoComBarrasEHoraMinutoSegundoComDoisPontos()
+		{
+			return tipo04;
+		}
+		
+		/**
+		 * HHmm
+		 */
+		public static DateFormat getHoraMinutoContatenado()
+		{
+			return tipo05;
+		}
 	}
 }

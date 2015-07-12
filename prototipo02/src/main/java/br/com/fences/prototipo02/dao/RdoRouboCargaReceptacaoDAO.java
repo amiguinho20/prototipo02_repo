@@ -68,7 +68,6 @@ public class RdoRouboCargaReceptacaoDAO {
 	}
 	
 	/**
-	 * Contagem de pesquisa textual/full text (apenas no NOME_PESSOA)
 	 * @param pesquisa
 	 * @return count
 	 */
@@ -119,6 +118,29 @@ public class RdoRouboCargaReceptacaoDAO {
 	    
 	    return ocorrencias;
 	}
+	
+	public String pesquisarUltimaDataRegistroNaoComplementar()
+	{
+		String datahoraRegistroBo = null;
+		
+		BasicDBObject pesquisa = new BasicDBObject("ANO_REFERENCIA_BO", new BasicDBObject("$exists", false));
+		BasicDBObject projecao = new BasicDBObject("DATAHORA_REGISTRO_BO", 1).append("_id", 0);
+		BasicDBObject ordenacao = new BasicDBObject("DATAHORA_REGISTRO_BO", -1);
+		
+		MongoCursor<Document> cursor = colecao.find(pesquisa).projection(projecao).sort(ordenacao).limit(1).iterator();
+	
+	    try {
+	        if (cursor.hasNext()) {
+	        	Document documento = cursor.next();
+	        	datahoraRegistroBo = documento.getString("DATAHORA_REGISTRO_BO");
+	        }
+	    } finally {
+	        cursor.close();
+	    }
+	    return datahoraRegistroBo;
+	}
+	
+	
 	
 	/**
 	 * Substitui (replace) a ocorrencia pelo id

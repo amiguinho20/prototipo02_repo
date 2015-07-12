@@ -72,6 +72,17 @@ public class Ocorrencia implements Serializable{
 	
 	@SerializedName("LONGITUDE")
 	private String longitude;
+
+	@SerializedName("NATUREZA")
+	private List<Natureza> naturezas = new ArrayList<>();
+	
+	@SerializedName("VEICULO")
+	private List<Veiculo> veiculos = new ArrayList<>();
+	
+	@SerializedName("CARGA")
+	private List<Carga> cargas = new ArrayList<>();
+	
+	//-- atributos de apoio para o prototipo02
 	
 	@SerializedName("GOOGLE_LATITUDE")
 	private String googleLatitude;
@@ -84,15 +95,6 @@ public class Ocorrencia implements Serializable{
 	
 	@SerializedName("CUSTOM_COMPLEMENTAR_LOCALIZACAO")
 	private String customComplementarLocalizacao;
-	
-	@SerializedName("NATUREZA")
-	private List<Natureza> naturezas = new ArrayList<>();
-	
-	@SerializedName("VEICULO")
-	private List<Veiculo> veiculos = new ArrayList<>();
-	
-	@SerializedName("CARGA")
-	private List<Carga> cargas = new ArrayList<>();
 	
 	@SerializedName("COMPLEMENTAR")
 	private transient List<Ocorrencia> complementares = new ArrayList<>(); //--ocorrencias complementares
