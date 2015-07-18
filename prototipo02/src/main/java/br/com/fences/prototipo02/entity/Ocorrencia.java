@@ -72,6 +72,9 @@ public class Ocorrencia implements Serializable{
 	
 	@SerializedName("LONGITUDE")
 	private String longitude;
+	
+	@SerializedName("HISTORICO_BO")
+	private String historicoBo;
 
 	@SerializedName("NATUREZA")
 	private List<Natureza> naturezas = new ArrayList<>();
@@ -297,6 +300,12 @@ public class Ocorrencia implements Serializable{
 	public void setCustomComplementarLocalizacao(
 			String customComplementarLocalizacao) {
 		this.customComplementarLocalizacao = customComplementarLocalizacao;
+	}
+	public String getHistoricoBo() {
+		return historicoBo;
+	}
+	public void setHistoricoBo(String historicoBo) {
+		this.historicoBo = historicoBo;
 	}
 
 	

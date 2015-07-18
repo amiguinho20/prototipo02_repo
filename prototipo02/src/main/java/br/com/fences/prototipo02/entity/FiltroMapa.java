@@ -2,11 +2,10 @@ package br.com.fences.prototipo02.entity;
 
 import java.io.Serializable;
 
-import javax.faces.view.ViewScoped;
 import javax.inject.Named;
 
 @Named
-@ViewScoped
+@javax.faces.view.ViewScoped
 public class FiltroMapa implements Serializable{
 
 	private static final long serialVersionUID = -882301340484453507L;

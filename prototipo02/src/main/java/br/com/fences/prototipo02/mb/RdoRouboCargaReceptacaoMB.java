@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.faces.view.ViewScoped;
+//import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.log4j.Logger;
 import org.omnifaces.util.Faces;
 import org.omnifaces.util.Messages;
 import org.primefaces.model.LazyDataModel;
@@ -27,22 +28,27 @@ import org.primefaces.model.map.Polyline;
 import br.com.fences.prototipo02.dao.EnderecoAvulsoDAO;
 import br.com.fences.prototipo02.dao.RdoRouboCargaReceptacaoDAO;
 import br.com.fences.prototipo02.entity.EnderecoAvulso;
-import br.com.fences.prototipo02.entity.Filtro;
 import br.com.fences.prototipo02.entity.FiltroMapa;
+import br.com.fences.prototipo02.entity.FiltroRouboCargaReceptacao;
 import br.com.fences.prototipo02.entity.Natureza;
 import br.com.fences.prototipo02.entity.Ocorrencia;
 import br.com.fences.prototipo02.exception.GoogleLimiteAtingidoRuntimeException;
 import br.com.fences.prototipo02.exception.GoogleZeroResultsRuntimeException;
 import br.com.fences.prototipo02.util.EnderecoGeocodeUtil;
 import br.com.fences.prototipo02.util.FormatarData;
+import br.com.fences.prototipo02.util.MontarGrafico;
 import br.com.fences.prototipo02.util.RdoRouboCargaReceptacaoLazyDataModel;
 import br.com.fences.prototipo02.util.Verificador;
 
 @Named
-@ViewScoped
+@javax.faces.view.ViewScoped
+//@SessionScoped
 public class RdoRouboCargaReceptacaoMB implements Serializable{
 
 	private static final long serialVersionUID = 1866941789765596632L;
+	
+	@Inject
+	private transient Logger logger;
 
 	@Inject
 	private RdoRouboCargaReceptacaoDAO rdoRouboCargaReceptacaoDAO;
@@ -51,10 +57,13 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 	private EnderecoAvulsoDAO enderecoAvulsoDAO;
 	
 	@Inject
-	private Filtro filtro;
+	private FiltroRouboCargaReceptacao filtro;
 	
 	@Inject
 	private FiltroMapa filtroMapa;
+	
+	@Inject
+	private MontarGrafico montarGrafico;
 	
 	private Integer contagem;
 	private LazyDataModel<Ocorrencia> ocorrenciasResultadoLazy;
@@ -66,98 +75,70 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 	private enum TipoMarcador { COMPLEMENTAR, RECEPTACAO, ROUBO_CARGA }
 	
 	//--graficos
-	private PieChartModel graficoPizzaNatureza;
 	private PieChartModel graficoPizzaFlagrante;
 	private PieChartModel graficoPizzaAno;
-	private PieChartModel graficoPizzaComplementar;
+	private PieChartModel graficoPizzaComplementar;   
 	
 	@PostConstruct
-	private void init() {	
+	private void init() {	 
 		pesquisar();
 	} 
 	
-	public void pesquisar(){
+	public void pesquisar(){ 
 		setOcorrenciasResultadoLazy(new RdoRouboCargaReceptacaoLazyDataModel(rdoRouboCargaReceptacaoDAO, filtro));
 		setContagem(getOcorrenciasResultadoLazy().getRowCount());
-		montarGraficoPizzaNatureza();
 		montarGraficoPizzaAno();
 		montarGraficoPizzaFlagrante();
 		montarGraficoPizzaComplementar();
 		limparMapa();
 	}
-
+ 
 	public void limpar(){
-		filtro = new Filtro();
+		filtro.limpar();
+		ocorrenciasSelecionadas.clear();
 		limparMapa();
 		pesquisar();
 	}
 	
 	public void limparMapa(){
+		filtroMapa = new FiltroMapa();
 		geoModel = null;
-	}
-
-	private void montarGraficoPizzaNatureza()
-	{
-		graficoPizzaNatureza = new PieChartModel();
-        
-		graficoPizzaNatureza.set("Roubo de carga", 540);
-		graficoPizzaNatureza.set("Receptação", 325);
-         
-		graficoPizzaNatureza.setTitle("Natureza");
-		graficoPizzaNatureza.setLegendPosition("w");
 	}
 	
 	public void montarGraficoPizzaFlagrante()
 	{
-		graficoPizzaFlagrante = new PieChartModel();
-		graficoPizzaFlagrante.setTitle("Flagrante");
-		graficoPizzaFlagrante.setLegendPosition("w"); 
-		
 		Map<String, Integer> resultados = rdoRouboCargaReceptacaoDAO.agregarPorFlagrante(filtro);
-		for (Map.Entry<String, Integer> entry : resultados.entrySet() )
-		{
-			graficoPizzaFlagrante.set(entry.getKey() + " : " + entry.getValue(), entry.getValue());
-		}
-		
-		//graficoPizzaFlagrante.setFill(false);
-		graficoPizzaFlagrante.setShowDataLabels(true);
-		//graficoPizzaFlagrante.setDiameter(150);
+		graficoPizzaFlagrante = montarGrafico.pizza(resultados, "Flagrante", "w", true);
 	}
 	
 	public void montarGraficoPizzaAno()
 	{
-		graficoPizzaAno = new PieChartModel();
-		graficoPizzaAno.setTitle("Ano");
-		graficoPizzaAno.setLegendPosition("w"); 
-		
 		Map<String, Integer> resultados = rdoRouboCargaReceptacaoDAO.agregarPorAno(filtro);
-		for (Map.Entry<String, Integer> entry : resultados.entrySet() )
-		{
-			graficoPizzaAno.set(entry.getKey() + " : " + entry.getValue(), entry.getValue());
-		}
-		
-		//graficoPizzaAno.setFill(false);
-		graficoPizzaAno.setShowDataLabels(true);
-		//graficoPizzaFlagrante.setDiameter(150);
+		graficoPizzaAno = montarGrafico.pizza(resultados, "Ano", "w", true);
 	}
 
 	public void montarGraficoPizzaComplementar()
 	{
-		graficoPizzaComplementar = new PieChartModel();
-		graficoPizzaComplementar.setTitle("Ocorrências que possuem complemento de recuperação/localização");
-		graficoPizzaComplementar.setLegendPosition("w"); 
-		
 		Map<String, Integer> resultados = rdoRouboCargaReceptacaoDAO.agregarPorComplementar(filtro);
-		for (Map.Entry<String, Integer> entry : resultados.entrySet() )
-		{
-			graficoPizzaComplementar.set(entry.getKey() + " : " + entry.getValue(), entry.getValue());
-		}
-		
-		//graficoPizzaAno.setFill(false);
-		graficoPizzaComplementar.setShowDataLabels(true);
-		//graficoPizzaFlagrante.setDiameter(150);
+		graficoPizzaComplementar = montarGrafico.pizza(resultados, "Ocorrências que possuem complemento de recuperação/localização", "w", true);
 	}
 
+//	public boolean filtrarPorIgualdadeDesconsiderandoAcentuacao(Object valorComparado, Object filtro, Locale locale) 
+//	{
+//		boolean achou = false;
+//		
+//		
+//		String filterText = (filter == null) ? null : filter.toString().trim();
+//		if (filterText == null || filterText.equals("")) {
+//			return true;
+//		}
+//
+//		if (value == null) {
+//			return false;
+//		}
+//
+//		return ((Comparable) value).compareTo(Integer.valueOf(filterText)) > 0;
+//	}
 	
 	public void exibirRegistrosSelecionadosNoMapa()
 	{
@@ -202,7 +183,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 							ocorAux.setGoogleGeocoderStatus("ZERO_RESULTS");
 							//-- atualiza no banco
 							rdoRouboCargaReceptacaoDAO.substituir(ocorAux);
-							System.out.println("atualizado como ZERO_RESULTS [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
+							//logger.info("atualizado como ZERO_RESULTS [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
 						}
 						if (latLng != null)
 						{
@@ -211,7 +192,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 							ocorAux.setGoogleGeocoderStatus("OK");
 							//-- atualiza no banco
 							rdoRouboCargaReceptacaoDAO.substituir(ocorAux);
-							System.out.println("atualizado como OK [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
+							//logger.info("atualizado como OK [" + formatarOcorrencia(ocorAux) + " " + formatarEndereco(ocorAux) + "]");
 						}
 					}
 				}
@@ -270,7 +251,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 						enderecoAvulso.setGoogleGeocoderStatus("ZERO_RESULTS");
 						//-- atualiza no banco
 						enderecoAvulsoDAO.substituir(enderecoAvulso);
-						System.out.println("atualizado como ZERO_RESULTS [" + enderecoFormatado + "]");
+						//logger.info("atualizado como ZERO_RESULTS [" + enderecoFormatado + "]");
 					}
 					if (latLng != null)
 					{
@@ -279,7 +260,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 						enderecoAvulso.setGoogleGeocoderStatus("OK");
 						//-- atualiza no banco
 						enderecoAvulsoDAO.substituir(enderecoAvulso);
-						System.out.println("atualizado como OK [" + enderecoFormatado + "]");
+						//logger.info("atualizado como OK [" + enderecoFormatado + "]");
 					}
 				}
 			}
@@ -538,7 +519,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 	
 	public String formatarData(String original){
 		String formatacao = "";
-		if (original != null)
+		if (Verificador.isValorado(original))
 		{
 			try
 			{
@@ -570,7 +551,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 	public String formatarGeocode(Ocorrencia ocorrencia)
 	{
 		String formatado = "";
-		System.err.println("INIBIDO formatarGeocode");
+		//logger.warn("INIBIDO formatarGeocode");
 		/*
 		LatLng latLng = EnderecoGeocodeUtil.converter(ocorrencia);
 		if (latLng != null)
@@ -681,11 +662,11 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 		this.geoModel = geoModel;
 	}
 
-	public Filtro getFiltro() {
+	public FiltroRouboCargaReceptacao getFiltro() {
 		return filtro;
 	}
 
-	public void setFiltro(Filtro filtro) {
+	public void setFiltro(FiltroRouboCargaReceptacao filtro) {
 		this.filtro = filtro;
 	}
 
@@ -695,14 +676,6 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 
 	public void setFiltroMapa(FiltroMapa filtroMapa) {
 		this.filtroMapa = filtroMapa;
-	}
-
-	public PieChartModel getGraficoPizzaNatureza() {
-		return graficoPizzaNatureza;
-	}
-
-	public void setGraficoPizzaNatureza(PieChartModel graficoPizzaNatureza) {
-		this.graficoPizzaNatureza = graficoPizzaNatureza;
 	}
 
 	public PieChartModel getGraficoPizzaFlagrante() {

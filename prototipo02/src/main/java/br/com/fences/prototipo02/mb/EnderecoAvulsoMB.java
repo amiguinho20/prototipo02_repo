@@ -13,6 +13,7 @@ import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -26,7 +27,7 @@ import org.primefaces.model.UploadedFile;
 
 import br.com.fences.prototipo02.dao.EnderecoAvulsoDAO;
 import br.com.fences.prototipo02.entity.EnderecoAvulso;
-import br.com.fences.prototipo02.entity.Filtro;
+import br.com.fences.prototipo02.entity.FiltroEnderecoAvulso;
 import br.com.fences.prototipo02.entity.Ocorrencia;
 import br.com.fences.prototipo02.util.EnderecoAvulsoLazyDataModel;
 import br.com.fences.prototipo02.util.EnderecoGeocodeUtil;
@@ -38,11 +39,14 @@ public class EnderecoAvulsoMB implements Serializable{
 
 	private static final long serialVersionUID = 1866941789765596632L;
 
-	@Inject
+	@Inject          
+	private transient Logger logger;       
+	
+	@Inject            
 	private EnderecoAvulsoDAO enderecoAvulsoDAO;
 	
 	@Inject
-	private Filtro filtro;
+	private FiltroEnderecoAvulso filtro;
 	
 //	@Inject
 //	private FiltroMapa filtroMapa;
@@ -50,7 +54,8 @@ public class EnderecoAvulsoMB implements Serializable{
 	private Integer contagem;
 	private LazyDataModel<EnderecoAvulso> enderecosAvulsosResultadoLazy;
 	private List<EnderecoAvulso> enderecosAvulsosSelecionados;
-
+	private List<EnderecoAvulso> enderecosAvulsosFiltrados;
+            
 //	private String centroMapa = "-23.538419906917593, -46.63483794999996";
 //	private MapModel geoModel;
 
@@ -80,17 +85,18 @@ public class EnderecoAvulsoMB implements Serializable{
 	}
 
 	public void limpar(){
-		filtro = new Filtro();
-		limparMapa();
+		filtro = new FiltroEnderecoAvulso();
+		limparMapa();    
 		pesquisar();  
 	}
 	
-	public String incluir(){
+	public String incluir(){        
 		if (enderecoAvulso != null && !Verificador.isValorado(enderecoAvulso.getId()))
 		{ 
 			enderecoAvulsoDAO.adicionar(enderecoAvulso);
 			enderecoAvulso = new EnderecoAvulso();
 			setFormulario("formLista"); 
+			limpar();
 			Messages.addGlobalInfo("Inclusão realizada com sucesso.");
 		}
 		return "enderecoAvulso";
@@ -102,6 +108,7 @@ public class EnderecoAvulsoMB implements Serializable{
 			enderecoAvulsoDAO.substituir(enderecoAvulso);
 			enderecoAvulso = new EnderecoAvulso();
 			setFormulario("formLista");
+			limpar();
 			Messages.addGlobalInfo("Alteração realizada com sucesso.");	
 		}
 		return "enderecoAvulso";
@@ -449,11 +456,11 @@ public class EnderecoAvulsoMB implements Serializable{
 	}
 
 
-	public Filtro getFiltro() {
+	public FiltroEnderecoAvulso getFiltro() {
 		return filtro;
 	}
 
-	public void setFiltro(Filtro filtro) {
+	public void setFiltro(FiltroEnderecoAvulso filtro) {
 		this.filtro = filtro;
 	}
 
@@ -537,6 +544,15 @@ public class EnderecoAvulsoMB implements Serializable{
 	public void setArquivoEnderecosAvulsos(
 			List<EnderecoAvulso> arquivoEnderecosAvulsos) {
 		this.arquivoEnderecosAvulsos = arquivoEnderecosAvulsos;
+	}
+
+	public List<EnderecoAvulso> getEnderecosAvulsosFiltrados() {
+		return enderecosAvulsosFiltrados;
+	}
+
+	public void setEnderecosAvulsosFiltrados(
+			List<EnderecoAvulso> enderecosAvulsosFiltrados) {
+		this.enderecosAvulsosFiltrados = enderecosAvulsosFiltrados;
 	}
 
 	

@@ -10,15 +10,15 @@ import java.util.TreeMap;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.primefaces.model.map.LatLng;
 
+import br.com.fences.prototipo02.config.Log;
 import br.com.fences.prototipo02.converter.Converter;
 import br.com.fences.prototipo02.converter.OcorrenciaConverter;
-import br.com.fences.prototipo02.entity.Filtro;
+import br.com.fences.prototipo02.entity.FiltroRouboCargaReceptacao;
 import br.com.fences.prototipo02.entity.Ocorrencia;
 import br.com.fences.prototipo02.util.EnderecoGeocodeUtil;
 
@@ -26,7 +26,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 
-@Named
 @ApplicationScoped
 public class RdoRouboCargaReceptacaoDAO {     
 
@@ -71,7 +70,7 @@ public class RdoRouboCargaReceptacaoDAO {
 	 * @param pesquisa
 	 * @return count
 	 */
-	public int contar(final Filtro filtro)
+	public int contar(final FiltroRouboCargaReceptacao filtro)
 	{
 //		BasicDBObject search = new BasicDBObject("$search", pesquisa);
 //	    BasicDBObject text = new BasicDBObject("$text", search); 
@@ -89,7 +88,8 @@ public class RdoRouboCargaReceptacaoDAO {
 	 * @param registrosPorPagina
 	 * @return List<Ocorrencia> paginado
 	 */
-	public List<Ocorrencia> pesquisarLazy(final Filtro filtro, final int primeiroRegistro, final int registrosPorPagina)
+	@Log
+	public List<Ocorrencia> pesquisarLazy(final FiltroRouboCargaReceptacao filtro, final int primeiroRegistro, final int registrosPorPagina)
 	{
 		List<Ocorrencia> ocorrencias = new ArrayList<>();
 		
@@ -162,6 +162,21 @@ public class RdoRouboCargaReceptacaoDAO {
 		}
 	}
 	
+	public void adicionar(Ocorrencia ocorrencia)
+	{
+		try
+		{
+			Document documento = converter.paraDocumento(ocorrencia);
+			colecao.insertOne(documento);
+		}
+		catch (Exception e)
+		{
+			String msg = "Erro na adicao. num[" + ocorrencia.getNumBo() + "] ano[" + ocorrencia.getAnoBo() + "] dlg[" + ocorrencia.getIdDelegacia() + "/" + ocorrencia.getNomeDelegacia() + "].";
+			System.err.println(msg);
+			e.printStackTrace();
+			throw new RuntimeException(msg);
+		}
+	}
 	
 	/**
 	 * @deprecated
@@ -191,7 +206,8 @@ public class RdoRouboCargaReceptacaoDAO {
 	}
 	
 	//////---- agregacoes
-	public Map<String, Integer> agregarPorFlagrante(final Filtro filtro)
+	@Log
+	public Map<String, Integer> agregarPorFlagrante(final FiltroRouboCargaReceptacao filtro)
 	{
 		//aggregate(Arrays.asList(
 		//        new Document("$match", new Document("borough", "Queens").append("cuisine", "Brazilian")),
@@ -220,7 +236,8 @@ public class RdoRouboCargaReceptacaoDAO {
 		return resultado;
 	}
 	
-	public Map<String, Integer> agregarPorAno(final Filtro filtro)
+	@Log
+	public Map<String, Integer> agregarPorAno(final FiltroRouboCargaReceptacao filtro)
 	{
 		//aggregate(Arrays.asList(
 		//        new Document("$match", new Document("borough", "Queens").append("cuisine", "Brazilian")),
@@ -249,7 +266,8 @@ public class RdoRouboCargaReceptacaoDAO {
 		return resultado;
 	}
 	
-	public Map<String, Integer> agregarPorComplementar(final Filtro filtro)
+	@Log
+	public Map<String, Integer> agregarPorComplementar(final FiltroRouboCargaReceptacao filtro)
 	{
 		//aggregate(Arrays.asList(
 		//        new Document("$match", new Document("borough", "Queens").append("cuisine", "Brazilian")),
@@ -475,8 +493,8 @@ public class RdoRouboCargaReceptacaoDAO {
 		
 		BasicDBObject pesquisa = new BasicDBObject("ANO_REFERENCIA_BO", new BasicDBObject("$exists", true));
 		BasicDBObject periodo = new BasicDBObject();
-			periodo.put("$gt", "20100000000000");
-			periodo.put("$lt", "20119999999999");
+			periodo.put("$gt", "20150000000000");
+			periodo.put("$lt", "20159999999999");
 		pesquisa.put("DATAHORA_REGISTRO_BO", periodo);
 		pesquisa.put("NATUREZA.ID_OCORRENCIA", "40");
 		pesquisa.put("NATUREZA.ID_ESPECIE", "40");

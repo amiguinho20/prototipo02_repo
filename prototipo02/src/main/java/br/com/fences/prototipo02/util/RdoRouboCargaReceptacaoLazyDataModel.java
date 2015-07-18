@@ -8,7 +8,7 @@ import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.SortOrder;
 
 import br.com.fences.prototipo02.dao.RdoRouboCargaReceptacaoDAO;
-import br.com.fences.prototipo02.entity.Filtro;
+import br.com.fences.prototipo02.entity.FiltroRouboCargaReceptacao;
 import br.com.fences.prototipo02.entity.Ocorrencia;
 
 public class RdoRouboCargaReceptacaoLazyDataModel extends LazyDataModel<Ocorrencia> {
@@ -18,9 +18,9 @@ public class RdoRouboCargaReceptacaoLazyDataModel extends LazyDataModel<Ocorrenc
 	private RdoRouboCargaReceptacaoDAO RdoRouboCargaReceptacaoDAO;
 
 	private List<Ocorrencia> ocorrencias;
-	private Filtro filtro;
+	private FiltroRouboCargaReceptacao filtro;
 
-	public RdoRouboCargaReceptacaoLazyDataModel(RdoRouboCargaReceptacaoDAO RdoRouboCargaReceptacaoDAO, Filtro filtro) {
+	public RdoRouboCargaReceptacaoLazyDataModel(RdoRouboCargaReceptacaoDAO RdoRouboCargaReceptacaoDAO, FiltroRouboCargaReceptacao filtro) {
 		this.ocorrencias = new ArrayList<>();
 		this.RdoRouboCargaReceptacaoDAO = RdoRouboCargaReceptacaoDAO;
 		this.filtro = filtro;
@@ -39,6 +39,7 @@ public class RdoRouboCargaReceptacaoLazyDataModel extends LazyDataModel<Ocorrenc
 	@Override
 	public List<Ocorrencia> load(int first, int pageSize, String sortField,
 			SortOrder sortOrder, Map<String, Object> filters) {
+		
 		ocorrencias = RdoRouboCargaReceptacaoDAO.pesquisarLazy(filtro, first, pageSize);
 
 		int count = RdoRouboCargaReceptacaoDAO.contar(filtro);

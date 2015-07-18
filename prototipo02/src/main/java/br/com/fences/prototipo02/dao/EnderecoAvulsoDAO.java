@@ -18,7 +18,7 @@ import org.bson.types.ObjectId;
 
 import br.com.fences.prototipo02.converter.Converter;
 import br.com.fences.prototipo02.entity.EnderecoAvulso;
-import br.com.fences.prototipo02.entity.Filtro;
+import br.com.fences.prototipo02.entity.FiltroEnderecoAvulso;
 import br.com.fences.prototipo02.util.FormatarData;
 
 import com.mongodb.BasicDBObject;
@@ -53,7 +53,7 @@ public class EnderecoAvulsoDAO {
 	 * @param pesquisa
 	 * @return count
 	 */
-	public int contar(final Filtro filtro)
+	public int contar(final FiltroEnderecoAvulso filtro)
 	{
 	    long countL = colecao.count(filtro.montarPesquisa());
 	    int countI = (int) countL;
@@ -67,7 +67,7 @@ public class EnderecoAvulsoDAO {
 	 * @param registrosPorPagina
 	 * @return List<EnderecoAvulso> paginado
 	 */
-	public List<EnderecoAvulso> pesquisarLazy(final Filtro filtro, final int primeiroRegistro, final int registrosPorPagina)
+	public List<EnderecoAvulso> pesquisarLazy(final FiltroEnderecoAvulso filtro, final int primeiroRegistro, final int registrosPorPagina)
 	{
 		List<EnderecoAvulso> enderecosAvulsos = new ArrayList<>();
 		
@@ -203,7 +203,7 @@ public class EnderecoAvulsoDAO {
 	
 	
 	//////---- agregacoes
-	public Map<String, Integer> agregarPorFlagrante(final Filtro filtro)
+	public Map<String, Integer> agregarPorFlagrante(final FiltroEnderecoAvulso filtro)
 	{
 		//aggregate(Arrays.asList(
 		//        new Document("$match", new Document("borough", "Queens").append("cuisine", "Brazilian")),
@@ -232,7 +232,7 @@ public class EnderecoAvulsoDAO {
 		return resultado;
 	}
 	
-	public Map<String, Integer> agregarPorAno(final Filtro filtro)
+	public Map<String, Integer> agregarPorAno(final FiltroEnderecoAvulso filtro)
 	{
 		//aggregate(Arrays.asList(
 		//        new Document("$match", new Document("borough", "Queens").append("cuisine", "Brazilian")),
@@ -261,7 +261,7 @@ public class EnderecoAvulsoDAO {
 		return resultado;
 	}
 	
-	public Map<String, Integer> agregarPorComplementar(final Filtro filtro)
+	public Map<String, Integer> agregarPorComplementar(final FiltroEnderecoAvulso filtro)
 	{
 		//aggregate(Arrays.asList(
 		//        new Document("$match", new Document("borough", "Queens").append("cuisine", "Brazilian")),

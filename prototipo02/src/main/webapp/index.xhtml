@@ -6,14 +6,14 @@
 	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
 
 <h:body>
- 
+  
 <ui:composition template="template.xhtml">
 <ui:define name="content">
 
 	<h:form id="form">
 		<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
 
-		<p:panel id="panelPesquisa" header="Filtros de pesquisa" style="margin:20px;">
+		<p:panel id="panelPesquisa" header="Filtros de pesquisa" style="margin:20px 20px 5px 20px;">
 			<h:panelGrid columns="2" >
 				<h:outputText value="Data de registro: " /> 
 				<h:panelGroup>
@@ -59,11 +59,12 @@
     		</h:panelGrid>
 
 			<f:facet name="footer">
-				<p:commandButton id="btnPesquisar" value="Pesquisar"
-						actionListener="#{rdoRouboCargaReceptacaoMB.pesquisar}" update="listaDeOcorrenciasLazy panelMapa panelGrafico" />
-				<p:commandButton id="btnLimpar" value="Limpar"
-						actionListener="#{rdoRouboCargaReceptacaoMB.limpar}" update="listaDeOcorrenciasLazy panelMapa panelPesquisa panelGrafico" />
-						
+				<h:panelGroup layout="block" style="text-align:right;">
+					<p:commandButton id="btnLimpar" value="Limpar"
+							actionListener="#{rdoRouboCargaReceptacaoMB.limpar}" update="listaDeOcorrenciasLazy panelMapa panelPesquisa panelGrafico" />
+					<p:commandButton id="btnPesquisar" value="Pesquisar"
+							actionListener="#{rdoRouboCargaReceptacaoMB.pesquisar}" update="listaDeOcorrenciasLazy panelMapa panelGrafico" />
+				</h:panelGroup>
 	        </f:facet>
 		</p:panel>
 
@@ -75,7 +76,7 @@
 			rowKey="#{ocorrencia.id}"
 			style="margin:20px;" paginator="true"
 			paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
-			rows="5" rowsPerPageTemplate="5,10,15,50,100">
+			rows="5" rowsPerPageTemplate="5,10,15,50,100" >
 
 
 
@@ -128,6 +129,9 @@
 						<h:outputText value="Local do fato:" />
 						<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarEndereco(ocorrencia)}" />
 
+						<h:outputText value="Histórico:" />
+						<h:outputText value="#{ocorrencia.historicoBo}" />
+
 						<h:outputText value="Geocode/LatLng (original):"/>
 						<h:outputText value="#{ocorrencia.latitude}, #{ocorrencia.longitude}"/>
 						
@@ -166,7 +170,10 @@
 									
 									<h:outputText value="Local do fato:" />
 									<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarEndereco(complementar)}" />
-			
+									
+									<h:outputText value="Histórico:" />
+									<h:outputText value="#{complementar.historicoBo}" />
+									
 									<h:outputText value="Geocode/LatLng (original):"/>
 									<h:outputText value="#{complementar.latitude}, #{complementar.longitude}"/>
 									
@@ -195,20 +202,19 @@
 				
 				</p:panel>
 			</p:rowExpansion>
-
-
-
 			<f:facet name="footer">
 				<h:outputText value="Total reg. da Pesquisa: #{rdoRouboCargaReceptacaoMB.ocorrenciasResultadoLazy.rowCount}   " />
-				<p:commandButton process="listaDeOcorrenciasLazy"
-					update="@widgetVar(mapaWidget)"
-					actionListener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}"
-					icon="ui-icon-search" value="Expor no mapa" />
 			</f:facet>
 		</p:dataTable>
+		<h:panelGroup layout="block" style="text-align:right; margin:0px 20px 20px 20px;" >
+			<p:commandButton 
+						update="@widgetVar(mapaWidget)"
+						actionListener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}"
+						icon="ui-icon-search" value="Expor no mapa" />
+		</h:panelGroup>
 	
 	
-		<p:panel id="panelMapa" header="Mapa" style="margin:20px">
+		<p:panel id="panelMapa" header="Mapa" style="margin:20px" >
 			<p:gmap id="mapa" widgetVar="mapaWidget"
 					center="#{rdoRouboCargaReceptacaoMB.centroMapa}" zoom="9" type="ROADMAP"
 					model="#{rdoRouboCargaReceptacaoMB.geoModel}"  
@@ -260,9 +266,10 @@
 						</p:inputSwitch>	
 					</h:panelGrid>
 				</p:fieldset>
-
-				<p:commandButton id="btnLimparMapa" value="Limpar mapa"
-					actionListener="#{rdoRouboCargaReceptacaoMB.limparMapa}" update="panelMapa" /> 
+				<h:panelGroup layout="block" style="text-align:right;">
+					<p:commandButton id="btnLimparMapa" value="Limpar mapa"
+						actionListener="#{rdoRouboCargaReceptacaoMB.limparMapa}" update="panelMapa" /> 
+				</h:panelGroup>
 			</p:panel>
 					
 				

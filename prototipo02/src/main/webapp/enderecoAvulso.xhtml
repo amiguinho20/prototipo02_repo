@@ -8,24 +8,27 @@
 <h:body>
  
 <ui:composition template="template.xhtml">
-<ui:define name="content">
-
-	<h:form id="formLista" rendered="#{enderecoAvulsoMB.formulario == 'formLista'}">
+<ui:define name="content" >
+<h:panelGroup layout="block" id="allPanel" styleClass="classAllPanel">
+	<h:form id="formLista" rendered="#{enderecoAvulsoMB.formulario == 'formLista'}" styleClass="classFormLista">
 		<p:messages id="messages" showDetail="false" autoUpdate="true" closable="true" style="margin:20px;" />
-
-		<p:dataTable id="listaEnderecosAvulsosLazy" var="enderecoAvulso"
+		<p:dataTable id="listaEnderecosAvulsosLazy" var="enderecoAvulso" widgetVar="widgetEnderecoAvulso"
 			value="#{enderecoAvulsoMB.enderecosAvulsosResultadoLazy}"
 			lazy="true"
 			selection="#{enderecoAvulsoMB.enderecosAvulsosSelecionados}" 
 			rowSelectMode="checkbox"
 			rowKey="#{enderecoAvulso.id}"
-			style="margin:20px;" paginator="true"
+			style="margin:20px 20px 0px 20px;"
+			filterDelay="1000"
+			paginator="true"
 			paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
 			rows="5" rowsPerPageTemplate="5,10,15,50,100">
-
 			<f:facet name="header">
-            	Endereços avulsos
-        	</f:facet>
+	            	Endereços avulsos
+	        </f:facet>
+
+			<p:ajax event="filter" update="@(.classTotalReg)"/> 
+
  			<p:column selectionMode="multiple" style="width:4%;text-align:center" />
  			<p:column style="width:4%">
             	<p:rowToggler /> 
@@ -68,31 +71,31 @@
 				</p:panel>
 			</p:rowExpansion>
 
-			<p:column headerText="Razão social">
+			<p:column headerText="Razão social" filterBy="#{enderecoAvulso.razaoSocial}" >
 				<h:outputText value="#{enderecoAvulso.razaoSocial}" />
 			</p:column>
-			<p:column headerText="Logradouro" >
+			<p:column headerText="Logradouro" filterBy="#{enderecoAvulso.logradouro}">
 				<h:outputText value="#{enderecoAvulso.logradouro}" />
 			</p:column>
-			<p:column headerText="Número">
+			<p:column headerText="Número" >
 				<h:outputText value="#{enderecoAvulso.numero}" />
 			</p:column>
-			<p:column headerText="Bairro" >
+			<p:column headerText="Bairro" filterBy="#{enderecoAvulso.bairro}">
 				<h:outputText value="#{enderecoAvulso.bairro}" />
 			</p:column>
-			<p:column headerText="Cidade" >
+			<p:column headerText="Cidade" filterBy="#{enderecoAvulso.cidade}">
 				<h:outputText value="#{enderecoAvulso.cidade}" />
 			</p:column>
-			<p:column headerText="Tipo" >
+			<p:column headerText="Tipo" filterBy="#{enderecoAvulso.tipo}">
 				<h:outputText value="#{enderecoAvulso.tipo}" />
 			</p:column>
-			<p:column headerText="Ativo" >
+			<p:column headerText="Ativo" filterBy="#{enderecoAvulso.indicadorAtivo}">
 				<h:outputText value="#{enderecoAvulso.indicadorAtivo}" />
 			</p:column>
 			<p:column style="width:12%;text-align:center">
 				<p:menuButton value="Opções" >
 					<p:menuitem value="Alterar" icon="ui-icon-arrowrefresh-1-w"
-						update="@all">
+						update="allPanel">
 						<f:setPropertyActionListener value="#{enderecoAvulso}"
 							target="#{enderecoAvulsoMB.enderecoAvulso}" />
 						<f:setPropertyActionListener value="formEnderecoAvulsoDetalhe"
@@ -103,10 +106,10 @@
 					</p:menuitem>
 				</p:menuButton>
 			</p:column>
-			<f:facet name="footer">
-				<h:outputText value="Total reg. da Pesquisa: #{enderecoAvulsoMB.enderecosAvulsosResultadoLazy.rowCount}   " />
-			</f:facet>
 		</p:dataTable>
+		<p:panel style="margin:0px 20px 20px 20px; padding:0px; text-align:center;" styleClass="ui-datatable-footer ui-widget-header ui-corner-bottom">
+			<h:outputText id="totalReg" style="color: white;" styleClass="classTotalReg" value="Total reg. da Pesquisa: #{enderecoAvulsoMB.enderecosAvulsosResultadoLazy.rowCount}   " />
+		</p:panel>
 		<h:panelGroup layout="block" style="margin:20px; text-align:right;">
 			<p:menuButton value="Opções">
 				<p:menuitem value="Ativar" icon="ui-icon-arrowthick-1-ne" 
@@ -162,11 +165,11 @@
 					</h:panelGroup>
 				</f:facet>
 			</p:dialog>
-			<p:commandButton icon="ui-icon-disk" value="Carregar lote" style="margin-left: 5px;" update="@all">
+			<p:commandButton icon="ui-icon-disk" value="Carregar lote" style="margin-left: 5px;" update="allPanel">
 				<f:setPropertyActionListener value="formCarga" target="#{enderecoAvulsoMB.formulario}" />
 				<f:param name="i" value="1" />
 			</p:commandButton>
-			<p:commandButton icon="ui-icon-pencil" value="Incluir endereço" style="margin-left: 5px;" update="@all">
+			<p:commandButton icon="ui-icon-pencil" value="Incluir endereço" style="margin-left: 5px;" update="allPanel">
 				<f:setPropertyActionListener value="formEnderecoAvulsoDetalhe" target="#{enderecoAvulsoMB.formulario}" />
 				<f:param name="i" value="1" />
 			</p:commandButton>
@@ -174,9 +177,8 @@
 	</h:form>
 	
 	
-	<h:form id="formEnderecoAvulsoDetalhe" rendered="#{enderecoAvulsoMB.formulario == 'formEnderecoAvulsoDetalhe'}">
+	<h:form id="formEnderecoAvulsoDetalhe" rendered="#{enderecoAvulsoMB.formulario == 'formEnderecoAvulsoDetalhe'}" styleClass="classFormEnderecoAvulsoDetalhe">
 		<p:messages id="messages" showDetail="false" autoUpdate="true" closable="true" style="margin:20px;"/>
-	
 		<p:panel header="#{empty enderecoAvulsoMB.enderecoAvulso.id ? 'Inclusão' : 'Alteração'} de endereço avulso"  style="margin:20px;">
 			<h:panelGrid columns="3">
 				
@@ -251,7 +253,7 @@
 					<f:selectItem itemLabel="SE" itemValue="SE"  />
 					<f:selectItem itemLabel="TO" itemValue="TO"  />
 				</p:selectOneMenu>
-				<p:message for="uf" />
+				<h:outputLabel value="" />
 					
 				<p:outputLabel for="cep" value="CEP:" />
 				<p:inputText id="cep" value="#{enderecoAvulsoMB.enderecoAvulso.cep}" maxlength="8">
@@ -286,20 +288,20 @@
 			<f:facet name="footer" >
 				<h:panelGroup layout="block" style="text-align:right;">
 					<p:commandButton action="enderecoAvulso" icon="ui-icon-cancel"
-						value="Cancelar" update="@all" immediate="true">
+						value="Cancelar" update="allPanel" immediate="true">
 						<f:param name="i" value="1" />
 						<f:setPropertyActionListener value="formLista"
 							target="#{enderecoAvulsoMB.formulario}" />
 					</p:commandButton>
 					<p:commandButton icon="ui-icon-check"
 						actionListener="#{enderecoAvulsoMB.incluir}" value="Incluir"
-						update="@all"
+						update="allPanel"
 						rendered="#{empty enderecoAvulsoMB.enderecoAvulso.id}">
 						<f:param name="i" value="1" />
 					</p:commandButton>
 					<p:commandButton icon="ui-icon-check"
 						actionListener="#{enderecoAvulsoMB.alterar}" value="Alterar"
-						update="@all"
+						update="allPanel"
 						rendered="#{not empty enderecoAvulsoMB.enderecoAvulso.id}">
 						<f:param name="i" value="1" />
 					</p:commandButton>
@@ -310,7 +312,7 @@
 		</p:panel>
 	</h:form>
 	
-	<h:form id="formCarga" rendered="#{enderecoAvulsoMB.formulario == 'formCarga'}">
+	<h:form id="formCarga" rendered="#{enderecoAvulsoMB.formulario == 'formCarga'}" styleClass="classFormCarga">
 		<p:messages id="messages" showDetail="false" autoUpdate="true" closable="true" style="margin:20px;"/>
 
 		<p:panel header="Carga em lote de registros via planilha Excel (xls/xlsx)" style="margin:20px;">
@@ -383,7 +385,7 @@
 			<f:facet name="footer">
 				<h:panelGroup layout="block" style="text-align:right;">
 					<p:commandButton action="enderecoAvulso" icon="ui-icon-cancel"
-						value="Cancelar" update="@all" immediate="true">
+						value="Cancelar" update="allPanel" immediate="true">
 						<f:param name="i" value="1" />
 						<f:setPropertyActionListener value="formLista"
 							target="#{enderecoAvulsoMB.formulario}" />
@@ -392,7 +394,7 @@
 						value="Processar"
 						actionListener="#{enderecoAvulsoMB.carregarArquivo}"
 						disabled="#{empty enderecoAvulsoMB.arquivo}"
-						update="@all">
+						update="allPanel">
 						<f:param name="i" value="1" />
 					</p:commandButton>
 				</h:panelGroup>
@@ -401,7 +403,7 @@
 		</p:panel>
 	
 	</h:form>
-		
+</h:panelGroup>		
 </ui:define>
 </ui:composition>
 </h:body>

@@ -4,9 +4,13 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
+import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.bson.Document;
+
+import br.com.fences.prototipo02.config.AppConfig;
+import br.com.fences.prototipo02.util.Verificador;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
@@ -17,11 +21,11 @@ import com.mongodb.client.MongoDatabase;
 @ApplicationScoped
 public class MongoProvider {
 
-	private static final String USUARIO = "proto";  
-	private static final String SENHA = "proto12";
-	private static final String HOST = "ds061651.mongolab.com";
-	private static final String PORTA = "61651";
-	private static final String BANCO = "amiguinho";
+//	private static final String USUARIO = "proto";  
+//	private static final String SENHA = "proto12";
+//	private static final String HOST = "ds061651.mongolab.com";
+//	private static final String PORTA = "61651";
+//	private static final String BANCO = "amiguinho";
 	private static final String COLECAO_ROUBO_CARGA = "rdo_roubo_carga_recep03"; 
 	private static final String COLECAO_ENDERECO_AVULSO = "endereco_avulso";
 	
@@ -31,23 +35,33 @@ public class MongoProvider {
 	private MongoCollection<Document> colecaoEnderecosAvulsos;
 
 	
+	@Inject
+	private AppConfig appConfig;
+	
 	@PostConstruct
 	public void abrirConexao() 
 	{
 		System.out.println("Inicio da abertura de conexao geral...");
 		
-		String uriConexao = String.format("mongodb://%s:%s@%s:%s/%s", USUARIO, SENHA, HOST, PORTA, BANCO);
-		MongoClientURI uri  = new MongoClientURI(uriConexao); 
-
-		//-- nuvem
-		conexao = new MongoClient(uri);
-		banco = conexao.getDatabase(uri.getDatabase());
+		String dbMongoHost = appConfig.getDbMongoHost();
+		String dbMongoPort = appConfig.getDbMongoPort();
+		String dbMongoDatabase = appConfig.getDbMongoDatabase();
+		String dbMongoUser = appConfig.getDbMongoUser();
+		String dbMongoPass = appConfig.getDbMongoPass();
 		
-		//-- cliente
-//		conexao = new MongoClient("10.75.200.49", 27017);
-//		banco = conexao.getDatabase("fences");
-
+		if (Verificador.isValorado(dbMongoUser))
+		{
+			String uriConexao = String.format("mongodb://%s:%s@%s:%s/%s", dbMongoUser, dbMongoPass, dbMongoHost, dbMongoPort, dbMongoDatabase);
+			MongoClientURI uri  = new MongoClientURI(uriConexao); 
+			conexao = new MongoClient(uri);
+		}
+		else
+		{
+			conexao = new MongoClient(dbMongoHost, Integer.parseInt(dbMongoPort));
+		}
+		banco = conexao.getDatabase(dbMongoDatabase);
 		
+
 		//		colecao = banco.getCollection(COLECAO);
 		colecaoRdoRouboCarga = banco.getCollection(COLECAO_ROUBO_CARGA);
 		if (colecaoRdoRouboCarga == null)
@@ -62,11 +76,7 @@ public class MongoProvider {
 			banco.createCollection(COLECAO_ENDERECO_AVULSO);
 			colecaoEnderecosAvulsos = banco.getCollection(COLECAO_ENDERECO_AVULSO);
 		}
-		
-		
-//		conexao = new MongoClient("10.75.200.49", 27017);
-//		banco = conexao.getDatabase("fences");
-//	    colecao = banco.getCollection(COLECAO);
+
 		System.out.println("Termino da abertura da conexao geral.");
 	    
 	}
