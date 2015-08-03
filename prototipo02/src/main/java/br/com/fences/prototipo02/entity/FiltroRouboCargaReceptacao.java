@@ -5,16 +5,17 @@ import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
+
+import com.mongodb.BasicDBObject;
 
 import br.com.fences.prototipo02.util.FormatarData;
 import br.com.fences.prototipo02.util.Verificador;
 
-import com.mongodb.BasicDBObject;
-
 @Named
-@javax.faces.view.ViewScoped
-//@SessionScoped
+//@javax.faces.view.ViewScoped
+@SessionScoped
 public class FiltroRouboCargaReceptacao implements Serializable{ 
 
 	private static final long serialVersionUID = -7701810214532312594L;
@@ -112,6 +113,12 @@ public class FiltroRouboCargaReceptacao implements Serializable{
 	}
 	
 	
+	
+	@Override
+	public String toString() {
+		return montarPesquisa().toString();
+	}
+
 	public Date getDataInicial() {
 		return dataInicial;
 	}

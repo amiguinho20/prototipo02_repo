@@ -2,10 +2,12 @@ package br.com.fences.prototipo02.entity;
 
 import java.io.Serializable;
 
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Named;
 
 @Named
-@javax.faces.view.ViewScoped
+//@javax.faces.view.ViewScoped
+@SessionScoped
 public class FiltroMapa implements Serializable{
 
 	private static final long serialVersionUID = -882301340484453507L;
@@ -14,11 +16,28 @@ public class FiltroMapa implements Serializable{
 	private boolean exibirReceptacao = true;
 	private boolean exibirComplementar = true;
 	private boolean exibirApenasLinhas = false;
+	private boolean exibirJanelaFilha = false;
 	
 	private boolean exibirAvulsoMercado = false;
 	private boolean exibirAvulsoGalpao = false;
 	private boolean exibirAvulsoDeposito = false;
 	private boolean exibirAvulsoDesmanche = false;
+	
+	public void limpar()
+	{
+		exibirRoubo = true;
+		exibirReceptacao = true;
+		exibirComplementar = true;
+		exibirApenasLinhas = false;
+		
+		//exibirJanelaFilha = false;// nao deve ser limpo, pois deve ser mantido
+		
+		exibirAvulsoMercado = false;
+		exibirAvulsoGalpao = false;
+		exibirAvulsoDeposito = false;
+		exibirAvulsoDesmanche = false;
+	}
+	
 	
 	public boolean isExibirRoubo() {
 		return exibirRoubo;
@@ -67,6 +86,12 @@ public class FiltroMapa implements Serializable{
 	}
 	public void setExibirAvulsoDesmanche(boolean exibirAvulsoDesmanche) {
 		this.exibirAvulsoDesmanche = exibirAvulsoDesmanche;
+	}
+	public boolean isExibirJanelaFilha() {
+		return exibirJanelaFilha;
+	}
+	public void setExibirJanelaFilha(boolean exibirJanelaFilha) {
+		this.exibirJanelaFilha = exibirJanelaFilha;
 	}
 	
 	

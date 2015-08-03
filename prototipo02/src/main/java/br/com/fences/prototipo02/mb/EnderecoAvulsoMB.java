@@ -40,7 +40,7 @@ public class EnderecoAvulsoMB implements Serializable{
 	private static final long serialVersionUID = 1866941789765596632L;
 
 	@Inject          
-	private transient Logger logger;       
+	private transient Logger logger;        
 	
 	@Inject            
 	private EnderecoAvulsoDAO enderecoAvulsoDAO;

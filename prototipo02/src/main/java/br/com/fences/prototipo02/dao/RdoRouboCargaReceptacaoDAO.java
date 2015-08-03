@@ -70,6 +70,7 @@ public class RdoRouboCargaReceptacaoDAO {
 	 * @param pesquisa
 	 * @return count
 	 */
+	@Log
 	public int contar(final FiltroRouboCargaReceptacao filtro)
 	{
 //		BasicDBObject search = new BasicDBObject("$search", pesquisa);

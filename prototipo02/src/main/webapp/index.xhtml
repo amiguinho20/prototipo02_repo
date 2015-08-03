@@ -1,16 +1,61 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
 	xmlns:p="http://primefaces.org/ui"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:fn="http://java.sun.com/jsp/jstl/functions">
-
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:fn="http://xmlns.jcp.org/jsp/jstl/functions">
 <h:body>
   
 <ui:composition template="template.xhtml">
+<ui:define name="scriptHeader">
+	var janelaFilha = null;
+	
+	function abrirJanelaFilha()
+	{
+		janelaFilha = window.open('#{baseURL}mapaSozinho.xhtml','mapaSozinho','', true);
+		janelaFilha.onbeforeunload = function() {
+			//-- isso aqui da problema quando a janela eh recarregada
+			//alert('rodar o fecha janela pelo usuario');
+			//janelaFechadaPeloUsuario(); //-- remoteCommand
+    	}
+	}
+	function fecharJanelaFilha()
+	{
+		if (janelaFilha != null)
+		{
+			janelaFilha.close();
+		}
+		janelaFilha = null;
+	}
+	function recarregarJanelaFilha() 
+	{
+	    if (janelaFilha != null)
+	    {
+	    	if (janelaFilha.closed)
+	    	{
+	    		abrirJanelaFilha();
+	    	}
+	    	else if (janelaFilha.name != '')
+	    	{
+		    	janelaFilha.location.reload();
+	    	}
+	    	else
+	    	{
+	    		abrirJanelaFilha();
+	    	}
+	    }
+	}
+</ui:define>
+<ui:define name="title">Fences | Protótipo 02</ui:define>
 <ui:define name="content">
-
 	<h:form id="form">
+	<script>
+
+	</script>
+	<p:commandButton type="button" value="Go! #{baseURL}" onclick="recarregarJanelaFilha()" rendered="false"/>
+	
+	
 		<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
 
 		<p:panel id="panelPesquisa" header="Filtros de pesquisa" style="margin:20px 20px 5px 20px;">
@@ -61,9 +106,13 @@
 			<f:facet name="footer">
 				<h:panelGroup layout="block" style="text-align:right;">
 					<p:commandButton id="btnLimpar" value="Limpar"
-							actionListener="#{rdoRouboCargaReceptacaoMB.limpar}" update="listaDeOcorrenciasLazy panelMapa panelPesquisa panelGrafico" />
+							actionListener="#{rdoRouboCargaReceptacaoMB.limpar}" 
+							update="listaDeOcorrenciasLazy panelMapa panelPesquisa panelGrafico" 
+							oncomplete="recarregarJanelaFilha()" />
 					<p:commandButton id="btnPesquisar" value="Pesquisar"
-							actionListener="#{rdoRouboCargaReceptacaoMB.pesquisar}" update="listaDeOcorrenciasLazy panelMapa panelGrafico" />
+							actionListener="#{rdoRouboCargaReceptacaoMB.pesquisar}" 
+							update="listaDeOcorrenciasLazy panelMapa panelGrafico" 
+							oncomplete="recarregarJanelaFilha()" />
 				</h:panelGroup>
 	        </f:facet>
 		</p:panel>
@@ -210,58 +259,85 @@
 			<p:commandButton 
 						update="@widgetVar(mapaWidget)"
 						actionListener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}"
-						icon="ui-icon-search" value="Expor no mapa" />
+						icon="ui-icon-search" value="Expor no mapa" 
+						onsuccess="recarregarJanelaFilha()"/>
 		</h:panelGroup>
 	
 	
 		<p:panel id="panelMapa" header="Mapa" style="margin:20px" >
+			<p:remoteCommand name="janelaFechadaPeloUsuario" 
+				update="panelMapa"
+				actionListener="#{rdoRouboCargaReceptacaoMB.filtroMapa.setExibirJanelaFilha(false)}"/>
+		
 			<p:gmap id="mapa" widgetVar="mapaWidget"
 					center="#{rdoRouboCargaReceptacaoMB.centroMapa}" zoom="9" type="ROADMAP"
 					model="#{rdoRouboCargaReceptacaoMB.geoModel}"  
-					style="width:100%;height:400px" />
+					style="width:100%;height:400px" 
+					rendered="#{not rdoRouboCargaReceptacaoMB.filtroMapa.exibirJanelaFilha}"/>
+			<h:panelGroup layout="block" rendered="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirJanelaFilha}">
+				<p>
+					<h:outputText styleClass="textoItalico" value="A opção " />
+					<h:outputText styleClass="textoNegrito" value="Exibir em janela separada " />
+					<h:outputText styleClass="textoItalico" value="está acionada. " />
+				</p>
+				<p>
+					<h:outputText styleClass="textoItalico" value="Atente-se ao bloqueador de janela pop-up do seu navegador, caso ela não apareça." />
+				</p>
+				<p>
+					<h:outputText styleClass="textoItalico" value="Caso a janela separada deixe de ser atualizada, por favor, desligue e religue a opção " />
+					<h:outputText styleClass="textoNegrito" value="Exibir em janela separada." />
+				</p>
+			</h:panelGroup>
 			
 			<p:panel id="panelControle" header="Controles" style="margin:20px">
 				<h:panelGrid columns="8">
 					<h:outputText value="Roubo de carga: " style="color: red;"/>
-					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirRoubo}">
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirRoubo}" onchange="recarregarJanelaFilha()">
 						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 					</p:inputSwitch>
 					
 					<h:outputText value="Receptação: " style="color: blue;"/>
-					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirReceptacao}">
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirReceptacao}" onchange="recarregarJanelaFilha()">
 						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 					</p:inputSwitch>		
 				
 					<h:outputText value="Complementar: " style="color: green;" />
-					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirComplementar}">
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirComplementar}" onchange="recarregarJanelaFilha()">
 						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 					</p:inputSwitch>	
 
 					<h:outputText value="Apenas linhas: " style="color: grey;" />
-					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirApenasLinhas}">
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirApenasLinhas}" onchange="recarregarJanelaFilha()">
 						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 					</p:inputSwitch>	
+
+					<h:outputText value="Exibir em janela separada: " style="color: grey;" />
+					<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirJanelaFilha}" 
+						onchange="#{not rdoRouboCargaReceptacaoMB.filtroMapa.exibirJanelaFilha ? 'abrirJanelaFilha()' : 'fecharJanelaFilha()'}">
+						<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa"   />
+					</p:inputSwitch>	
+					
 				</h:panelGrid>
 
 				<p:fieldset legend="Endereço avulso" style="margin:20px">
 					<h:panelGrid columns="8">
 						<h:outputText value="Mercado: " />
-						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoMercado}">
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoMercado}" onchange="recarregarJanelaFilha()">
 							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 						</p:inputSwitch>
 						
 						<h:outputText value="Galpão: " />
-						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoGalpao}">
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoGalpao}" onchange="recarregarJanelaFilha()">
 							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 						</p:inputSwitch>		
 					
 						<h:outputText value="Depósito: "  />
-						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoDeposito}">
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoDeposito}" onchange="recarregarJanelaFilha()">
 							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 						</p:inputSwitch>	
 	
 						<h:outputText value="Desmanche: "  />
-						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoDesmanche}">
+						<p:inputSwitch value="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirAvulsoDesmanche}" onchange="recarregarJanelaFilha()">
 							<p:ajax listener="#{rdoRouboCargaReceptacaoMB.exibirRegistrosSelecionadosNoMapa}" update="panelMapa" />
 						</p:inputSwitch>	
 					</h:panelGrid>

@@ -44,7 +44,7 @@ public class RdoRouboCargaReceptacaoLazyDataModel extends LazyDataModel<Ocorrenc
 
 		int count = RdoRouboCargaReceptacaoDAO.contar(filtro);
 		setRowCount(count);
-
+		
 		return ocorrencias;
 	}
 

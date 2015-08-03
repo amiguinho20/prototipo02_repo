@@ -40,8 +40,7 @@ public class CarregarOcorrenciasEJB {
 	@Inject
 	private AppConfig appConfig;
 	
-	//@Schedule(hour="1, 6")
-	@Schedule(hour="06", minute="30")
+	@Schedule(hour="6, 8, 10, 12, 14, 16, 18, 20", persistent=false)
 	public void processar()
 	{
 		logger.info("inicio do processo...");

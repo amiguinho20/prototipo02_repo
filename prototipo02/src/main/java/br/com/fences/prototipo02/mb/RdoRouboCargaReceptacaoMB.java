@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.enterprise.context.SessionScoped;
 //import javax.faces.view.ViewScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -41,8 +42,8 @@ import br.com.fences.prototipo02.util.RdoRouboCargaReceptacaoLazyDataModel;
 import br.com.fences.prototipo02.util.Verificador;
 
 @Named
-@javax.faces.view.ViewScoped
-//@SessionScoped
+//@javax.faces.view.ViewScoped
+@SessionScoped //-- por causa do mapa na segunda pagina   
 public class RdoRouboCargaReceptacaoMB implements Serializable{
 
 	private static final long serialVersionUID = 1866941789765596632L;
@@ -75,33 +76,45 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 	private enum TipoMarcador { COMPLEMENTAR, RECEPTACAO, ROUBO_CARGA }
 	
 	//--graficos
-	private PieChartModel graficoPizzaFlagrante;
-	private PieChartModel graficoPizzaAno;
+	private PieChartModel graficoPizzaFlagrante; 
+	private PieChartModel graficoPizzaAno;            
 	private PieChartModel graficoPizzaComplementar;   
 	
 	@PostConstruct
-	private void init() {	 
+	private void init() {	  
 		pesquisar();
 	} 
-	
+	 
+	/**
+	 * A pesquisa lazy de fato e' feita apos o termino da execucao desse metodo, pelo primefaces.
+	 * O filtro nao pode ser limpo aqui.
+	 */
 	public void pesquisar(){ 
 		setOcorrenciasResultadoLazy(new RdoRouboCargaReceptacaoLazyDataModel(rdoRouboCargaReceptacaoDAO, filtro));
 		setContagem(getOcorrenciasResultadoLazy().getRowCount());
 		montarGraficoPizzaAno();
 		montarGraficoPizzaFlagrante();
 		montarGraficoPizzaComplementar();
+		
+		//-- 
+		if (ocorrenciasSelecionadas != null)
+		{
+			ocorrenciasSelecionadas.clear();
+		}
 		limparMapa();
 	}
  
+	  
+	/**
+	 * Botao limpar. Faz a limpeza e executa a pesquisa
+	 */
 	public void limpar(){
 		filtro.limpar();
-		ocorrenciasSelecionadas.clear();
-		limparMapa();
 		pesquisar();
 	}
 	
 	public void limparMapa(){
-		filtroMapa = new FiltroMapa();
+		filtroMapa.limpar();
 		geoModel = null;
 	}
 	
@@ -140,7 +153,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 //		return ((Comparable) value).compareTo(Integer.valueOf(filterText)) > 0;
 //	}
 	
-	public void exibirRegistrosSelecionadosNoMapa()
+	public void exibirRegistrosSelecionadosNoMapa() 
 	{
 		geoModel = new DefaultMapModel();  	
 		
