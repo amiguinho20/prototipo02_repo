@@ -2,9 +2,11 @@ package br.com.fences.prototipo02.ejb;
 
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 
 import javax.ejb.Schedule;
 import javax.ejb.Stateless;
@@ -40,7 +42,7 @@ public class CarregarOcorrenciasEJB {
 	@Inject
 	private AppConfig appConfig;
 	
-	@Schedule(hour="6, 8, 10, 12, 14, 16, 18, 20", persistent=false)
+	//@Schedule(hour="6, 8, 10, 12, 14, 16, 18, 20", persistent=false)
 	public void processar()
 	{
 		logger.info("inicio do processo...");
@@ -52,13 +54,29 @@ public class CarregarOcorrenciasEJB {
 		//-- recuperar a ultima data de registro
 		String ultimaDataRegistro = rdoRouboCargaReceptacaoDAO.pesquisarUltimaDataRegistroNaoComplementar();
 		
-		logger.info("ultimadata: " + ultimaDataRegistro);
+		Date dtUltimaDataDeRegistro = null;
+		try {
+			dtUltimaDataDeRegistro = FormatarData.getAnoMesDiaHoraMinutoSegundoConcatenados().parse(ultimaDataRegistro);
+		} catch (ParseException e1) {
+			String msg = "Erro no rdoRouboCargaReceptacaoDAO.formatarDataRegistroInicial " + 
+					" e retornou o erro[" + e1.getMessage() + "]. PROCESSO ABORTADO.";
+			logger.error(msg);
+			throw new RuntimeException(msg);
+		}
+		Calendar calUltimaDataDeRegistro = Calendar.getInstance();
+		calUltimaDataDeRegistro.setTime(dtUltimaDataDeRegistro);
+		calUltimaDataDeRegistro.add(Calendar.SECOND, 1); //-- para nao selecionar o ultimo registro carregado.
+		String dataDeRegistroInicial = FormatarData.getAnoMesDiaHoraMinutoSegundoConcatenados().format(calUltimaDataDeRegistro.getTime());
+		logger.info("Ultima data de registro adicionado 1 segundo a mais: " + dataDeRegistroInicial);
+		
+		
+		logger.info("ultimadata: " + dataDeRegistroInicial);
 		
 		//-- montar o periodo de pesquisa
 		Calendar calDataCorrente = Calendar.getInstance();
 		calDataCorrente.add(Calendar.HOUR_OF_DAY, -2); //-- ajuste para o atraso do servidor
 		String dataCorrente = FormatarData.getAnoMesDiaHoraMinutoSegundoConcatenados().format(calDataCorrente.getTime());
-		String dataRegistroInicial = ultimaDataRegistro;
+		String dataRegistroInicial = dataDeRegistroInicial;
 		String dataRegistroFinal = dataCorrente;
 		
 		//-- pesquisar

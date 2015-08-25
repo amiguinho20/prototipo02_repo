@@ -1,9 +1,0 @@
-<job id="meuJob" xmlns="http://xmlns.jcp.org/xml/ns/javaee" version="1.0">
-	<step id="meuStep">
-		<chunk item-count="2">
-			<reader ref="meuLeitorDeItem" />
-			<processor ref="meuProcessadorDeItem" />
-			<writer ref="meuEscritorDeItem" />
-		</chunk>
-	</step>
-</job>

@@ -273,7 +273,26 @@
 					center="#{rdoRouboCargaReceptacaoMB.centroMapa}" zoom="9" type="ROADMAP"
 					model="#{rdoRouboCargaReceptacaoMB.geoModel}"  
 					style="width:100%;height:400px" 
-					rendered="#{not rdoRouboCargaReceptacaoMB.filtroMapa.exibirJanelaFilha}"/>
+					rendered="#{not rdoRouboCargaReceptacaoMB.filtroMapa.exibirJanelaFilha}">
+				<p:ajax event="overlaySelect" listener="#{rdoRouboCargaReceptacaoMB.onMarkerSelect}" />
+				<p:gmapInfoWindow rendered="false">
+             		<p>
+             		<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarOcorrencia(rdoRouboCargaReceptacaoMB.marcaSelecionada.data)}" />
+      			 	</p>
+ 
+             		<p>
+             		<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarEndereco(rdoRouboCargaReceptacaoMB.marcaSelecionada.data)}" />
+      			 	</p>
+      			
+   <p:menuButton value="Opções" rendered="false">
+        <p:menuitem value="Save" icon="ui-icon-disk"/>
+        <p:menuitem value="Update" icon="ui-icon-arrowrefresh-1-w"/>
+        <p:menuitem value="Delete"  icon="ui-icon-close"/>
+        <p:separator />
+        <p:menuitem value="Homepage"  icon="ui-icon-extlink"/>
+    </p:menuButton>	    			
+      			 </p:gmapInfoWindow>
+			</p:gmap>
 			<h:panelGroup layout="block" rendered="#{rdoRouboCargaReceptacaoMB.filtroMapa.exibirJanelaFilha}">
 				<p>
 					<h:outputText styleClass="textoItalico" value="A opção " />

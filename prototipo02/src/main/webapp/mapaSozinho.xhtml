@@ -1,0 +1,44 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://xmlns.jcp.org/jsf/html"
+	xmlns:f="http://xmlns.jcp.org/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:c="http://xmlns.jcp.org/jsp/jstl/core"
+	xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+	xmlns:fn="http://xmlns.jcp.org/jsp/jstl/functions">
+
+<h:body>
+
+	<ui:composition template="template.xhtml">
+		<ui:define name="title">Fences | Protótipo 02 - Janela separada</ui:define>
+		<ui:define name="header"/>	
+	
+		<ui:define name="content">
+			<h:form id="abc">
+				<p:gmap id="mapadef" widgetVar="mapaWidget"
+					center="#{rdoRouboCargaReceptacaoMB.centroMapa}" zoom="9"
+					type="ROADMAP" model="#{rdoRouboCargaReceptacaoMB.geoModel}"
+					style="width:100%;height:100%" >
+					<p:ajax event="overlaySelect" listener="#{rdoRouboCargaReceptacaoMB.onMarkerSelect}" />
+					<p:gmapInfoWindow>
+	             		<p>
+	             		<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarOcorrencia(rdoRouboCargaReceptacaoMB.marcaSelecionada.data)}" />
+	      			 	</p>
+	 
+	             		<p>
+	             		<h:outputText value="#{rdoRouboCargaReceptacaoMB.formatarEndereco(rdoRouboCargaReceptacaoMB.marcaSelecionada.data)}" />
+	      			 	</p>
+   <p:menuButton value="Opções">
+        <p:menuitem value="Save" icon="ui-icon-disk"/>
+        <p:menuitem value="Update" icon="ui-icon-arrowrefresh-1-w"/>
+        <p:menuitem value="Delete"  icon="ui-icon-close"/>
+        <p:separator />
+        <p:menuitem value="Homepage"  icon="ui-icon-extlink"/>
+    </p:menuButton>	
+					</p:gmapInfoWindow>
+
+				</p:gmap>
+			</h:form>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

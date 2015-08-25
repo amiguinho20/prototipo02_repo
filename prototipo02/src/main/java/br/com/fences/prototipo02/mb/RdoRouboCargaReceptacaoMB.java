@@ -18,6 +18,7 @@ import javax.inject.Named;
 import org.apache.log4j.Logger;
 import org.omnifaces.util.Faces;
 import org.omnifaces.util.Messages;
+import org.primefaces.event.map.OverlaySelectEvent;
 import org.primefaces.model.LazyDataModel;
 import org.primefaces.model.chart.PieChartModel;
 import org.primefaces.model.map.DefaultMapModel;
@@ -72,7 +73,16 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 
 	private String centroMapa = "-23.538419906917593, -46.63483794999996";
 	private MapModel geoModel;
+	private Marker marcaSelecionada;
 	
+	public Marker getMarcaSelecionada() {
+		return marcaSelecionada;
+	}
+
+	public void setMarcaSelecionada(Marker marcaSelecionada) {
+		this.marcaSelecionada = marcaSelecionada;
+	}
+
 	private enum TipoMarcador { COMPLEMENTAR, RECEPTACAO, ROUBO_CARGA }
 	
 	//--graficos
@@ -404,6 +414,14 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 		}
 	}
 	
+	public void onMarkerSelect(OverlaySelectEvent event) {
+	       marcaSelecionada = (Marker) event.getOverlay();
+	       logger.info("marker titulo: " + marcaSelecionada.getTitle());
+	       Ocorrencia ocorrencia = (Ocorrencia) marcaSelecionada.getData();
+	       logger.info("ocorrencia: " + formatarOcorrencia(ocorrencia));
+	       logger.info("endereco: " + formatarEndereco(ocorrencia));
+	}
+	
 	private boolean verificarExibicaoDeLinha(Ocorrencia ocorrencia)
 	{
 		boolean exibir = false;
@@ -455,7 +473,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 			else
 			{
 				//Marker marcaNoMapa = new Marker(latLng, ocorrenciaFormatada + " - " + enderecoFormatado);
-				Marker marcaNoMapa = new Marker(latLng, ocorrenciaFormatada + " - " + enderecoFormatado, null, iconeMarcador);
+				Marker marcaNoMapa = new Marker(latLng, ocorrenciaFormatada + " - " + enderecoFormatado, ocorrencia, iconeMarcador);
 				
 				geoModel.addOverlay(marcaNoMapa);
 			}
@@ -499,7 +517,7 @@ public class RdoRouboCargaReceptacaoMB implements Serializable{
 			}
 		}
 		return tipoMarcador;
-	} 
+	}  
 	
 
 	public String formatarOcorrencia(Ocorrencia ocorrencia)
